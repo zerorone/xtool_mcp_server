@@ -102,12 +102,75 @@ Presentation Phase (Chronological Order):
 
 This enables true AI-to-AI collaboration across the entire tool ecosystem with optimal
 context preservation and natural conversation understanding.
+
+AI之间多轮对话的会话记忆
+此模块为无状态MCP（模型上下文协议）环境提供会话持久性和上下文重构功能。它通过在独立请求周期的内存中存储会话状态，实现Claude和Gemini之间的多轮对话。
+关键架构要求：
+此会话记忆系统专为持久性MCP服务器进程设计。它使用仅在一个Python进程中持久化的内存存储。
+
+**重要：如果MCP工具调用作为独立子进程调用（每个子进程从空内存开始），该系统将无法正常工作。
+正常工作场景：带有持久MCP服务器进程的Claude桌面
+失败场景：模拟器测试将server.py作为独立子进程调用
+测试失败的根源：由于内存是特定于进程的，而不是跨子进程边界共享的，每个子进程调用都会丢失之前调用的对话状态。**
+
+**架构概述：MCP 协议本质上是无状态的 - 每个工具请求都是独立的，不会保留之前的交互记录。该模块通过以下方式弥补了这一差距：
+创建具有唯一 UUID 的持久对话线程
+在内存中存储完整的对话上下文（轮次、文件、元数据）
+当工具被调用 continuation_id 时重建对话历史
+支持跨工具延续 - 在不同工具之间无缝切换，同时保持完整的对话上下文和文件引用
+跨工具延续：
+使用一个工具（例如 analyze）开始的对话可以使用相同的 continuation_id 与任何其他工具（例如 codereview、debug、chat）继续。第二个工具将可以访问：
+所有之前的对话轮次和回复
+来自之前工具的文件上下文（保留在对话历史中）
+原始线程元数据和时序信息
+整个对话积累的知识**
+
+关键特性：
+基于UUID的对话线程识别，带安全验证
+逐轮对话历史存储，带工具归属
+跨工具延续支持 - 切换工具时保留上下文
+文件上下文保留 - 早先轮次中共享的文件仍然可访问
+最新优先的文件排序 - 当同一文件出现在多个轮次中时，较新轮次的引用优先于较旧轮次。这确保了在令牌限制需要排除时保留最新的文件上下文。
+自动轮次限制（最多20轮）以防止失控对话
+无状态请求连续性的上下文重建
+内存持久化，自动过期（3小时TTL）
+线程安全操作，支持并发访问
+存储不可用时优雅降级
+双重优先级策略（文件和对话）：
+对话内存系统对文件和对话轮次都实现了复杂的优先级管理，在收集时采用一致的"最新优先"方法，但以最适合LLM消费的方式呈现信息：
+文件优先级（始终最新优先）：
+跨对话轮次收集文件时，系统从新到旧遍历轮次，构建唯一文件列表
+如果同一文件路径出现在多个轮次中，最终列表中只保留最新轮次的引用
+这种"最新优先"排序在整个流程中保留：
+get_conversation_file_list() 建立排序
+build_conversation_history() 在令牌预算期间保持排序
+当达到令牌限制时，较旧的文件优先被排除
+该策略适用于对话链 - 任何线程中较新轮次的文件优先于任何线程中较旧轮次的文件
+对话轮次优先级（最新优先收集，按时间顺序呈现）：
+收集阶段：从新到旧处理轮次，优先保留最近的上下文
+当令牌预算紧张时，优先排除较旧的轮次
+确保保留最具上下文相关性的最新交流
+呈现阶段：将收集的轮次逆转为时间顺序（从旧到新）
+LLM看到自然的对话流程："轮次1 → 轮次2 → 轮次3..."
+在保留最新优先的同时保持正确的顺序理解
+这种双重方法确保了最佳的上下文保留（最新优先）和自然的对话流程（按时间顺序），以实现LLM的最大理解和相关性。
+使用示例：
+工具A创建线程：create_thread("analyze", request_data) → 返回UUID
+工具A添加回复：add_turn(UUID, "assistant", response, files=[...], tool_name="analyze")
+工具B继续线程：get_thread(UUID) → 检索完整上下文
+工具B通过build_conversation_history()查看对话历史
+工具B添加回复：add_turn(UUID, "assistant", response, tool_name="coderevie
+收藏
+
+
 """
 
+import json
 import logging
 import os
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -142,6 +205,27 @@ except ValueError:
     CONVERSATION_TIMEOUT_HOURS = 3
 
 CONVERSATION_TIMEOUT_SECONDS = CONVERSATION_TIMEOUT_HOURS * 3600
+
+# Enhanced Memory Configuration
+ENABLE_ENHANCED_MEMORY = os.getenv("ENABLE_ENHANCED_MEMORY", "true").lower() == "true"
+MEMORY_STORAGE_PATH = Path(os.getenv("MEMORY_STORAGE_PATH", ".zen_memory"))
+AUTO_DETECT_ENV = os.getenv("MEMORY_AUTO_DETECT_ENV", "true").lower() == "true"
+AUTO_SAVE_MEMORY = os.getenv("MEMORY_AUTO_SAVE", "true").lower() == "true"
+
+# Memory layer configurations
+MEMORY_LAYERS = {
+    "global": {
+        "persist": True,
+        "max_items": int(os.getenv("MEMORY_GLOBAL_MAX_ITEMS", "10000")),
+        "file": "global_memory.json",
+    },
+    "project": {
+        "persist": True,
+        "max_items": int(os.getenv("MEMORY_PROJECT_MAX_ITEMS", "5000")),
+        "file": "project_memory.json",
+    },
+    "session": {"persist": False, "max_items": int(os.getenv("MEMORY_SESSION_MAX_ITEMS", "1000")), "file": None},
+}
 
 
 class ConversationTurn(BaseModel):
@@ -1093,3 +1177,282 @@ def _is_valid_uuid(val: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+# Enhanced Memory Functions
+def _get_memory_storage_path(layer: str) -> Optional[Path]:
+    """Get storage path for a memory layer."""
+    if not ENABLE_ENHANCED_MEMORY:
+        return None
+
+    if not MEMORY_LAYERS[layer]["persist"]:
+        return None
+
+    file_name = MEMORY_LAYERS[layer]["file"]
+    if not file_name:
+        return None
+
+    # Create storage directory if it doesn't exist
+    MEMORY_STORAGE_PATH.mkdir(exist_ok=True)
+    return MEMORY_STORAGE_PATH / file_name
+
+
+def _load_memory_layer(layer: str) -> dict[str, Any]:
+    """Load persisted memory from disk."""
+    storage_path = _get_memory_storage_path(layer)
+    if not storage_path or not storage_path.exists():
+        return {}
+
+    try:
+        with open(storage_path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.warning(f"Failed to load {layer} memory: {e}")
+        return {}
+
+
+def _save_memory_layer(layer: str, data: dict[str, Any]) -> bool:
+    """Save memory layer to disk."""
+    storage_path = _get_memory_storage_path(layer)
+    if not storage_path:
+        return False
+
+    try:
+        with open(storage_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        logger.info(f"Memory saved to file: {storage_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save {layer} memory: {e}")
+        return False
+
+
+def save_memory(
+    content: Any, layer: str = "session", metadata: Optional[dict] = None, key: Optional[str] = None
+) -> str:
+    """
+    Save memory to specified layer with intelligent management.
+
+    Args:
+        content: The content to save
+        layer: Memory layer ("global", "project", "session")
+        metadata: Optional metadata for the memory
+        key: Optional key for the memory (auto-generated if not provided)
+
+    Returns:
+        str: The key used to store the memory
+    """
+    if not ENABLE_ENHANCED_MEMORY:
+        logger.debug("Enhanced memory is disabled")
+        return ""
+
+    if layer not in MEMORY_LAYERS:
+        logger.warning(f"Invalid memory layer: {layer}")
+        return ""
+
+    # Auto-generate key if not provided
+    if not key:
+        key = f"mem_{datetime.now(timezone.utc).isoformat()}_{uuid.uuid4().hex[:8]}"
+
+    # Load existing memory for the layer
+    memory_data = _load_memory_layer(layer) if layer != "session" else {}
+
+    # Create memory entry
+    memory_entry = {
+        "content": content,
+        "metadata": metadata or {},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "layer": layer,
+    }
+
+    # Add new entry first
+    memory_data[key] = memory_entry
+
+    # Check max items limit after adding
+    max_items = MEMORY_LAYERS[layer]["max_items"]
+    if len(memory_data) > max_items:
+        # Remove oldest entries (FIFO)
+        sorted_keys = sorted(memory_data.keys(), key=lambda k: memory_data[k].get("timestamp", ""))
+        # Remove the oldest entries to stay within limit
+        for old_key in sorted_keys[: len(memory_data) - max_items]:
+            del memory_data[old_key]
+
+    # Persist if needed
+    if MEMORY_LAYERS[layer]["persist"]:
+        _save_memory_layer(layer, memory_data)
+    else:
+        # For session layer, store in the current thread's metadata
+        storage = get_storage()
+        storage.setex(f"session_memory:{key}", CONVERSATION_TIMEOUT_SECONDS, json.dumps(memory_entry))
+
+    logger.debug(f"Saved memory to {layer} layer with key: {key}")
+    return key
+
+
+def recall_memory(
+    query: Optional[str] = None, layer: Optional[str] = None, filters: Optional[dict] = None, limit: int = 10
+) -> list[dict[str, Any]]:
+    """
+    Recall memories based on query and filters.
+
+    Args:
+        query: Optional search query
+        layer: Specific layer to search (None = all layers)
+        filters: Optional metadata filters
+        limit: Maximum number of results
+
+    Returns:
+        List of matching memories, newest first
+    """
+    if not ENABLE_ENHANCED_MEMORY:
+        return []
+
+    all_memories = []
+    layers_to_search = [layer] if layer else ["global", "project", "session"]
+
+    for search_layer in layers_to_search:
+        if search_layer not in MEMORY_LAYERS:
+            continue
+
+        # Load layer data
+        if search_layer == "session":
+            # For session layer, we would need to scan storage for session memories
+            # This is a simplified approach - in production, you might want
+            # to maintain an index of session memory keys
+            # For now, we just use an empty dict as session memories are transient
+            layer_memories = {}
+        else:
+            layer_memories = _load_memory_layer(search_layer)
+
+        # Apply filters and collect matches
+        for key, memory in layer_memories.items():
+            # Check metadata filters
+            if filters:
+                metadata = memory.get("metadata", {})
+                if not all(metadata.get(k) == v for k, v in filters.items()):
+                    continue
+
+            # Check query match (simple substring search)
+            if query:
+                content_str = str(memory.get("content", ""))
+                if query.lower() not in content_str.lower():
+                    continue
+
+            # Add to results
+            all_memories.append({"key": key, "layer": search_layer, **memory})
+
+    # Sort by timestamp (newest first) and limit
+    all_memories.sort(key=lambda m: m.get("timestamp", ""), reverse=True)
+    return all_memories[:limit]
+
+
+def detect_environment(project_root: str) -> dict[str, Any]:
+    """
+    Detect project environment and save to memory.
+
+    Args:
+        project_root: Root directory of the project
+
+    Returns:
+        Dict containing environment information
+    """
+    if not ENABLE_ENHANCED_MEMORY or not AUTO_DETECT_ENV:
+        return {}
+
+    env_info = {
+        "project_root": project_root,
+        "detected_at": datetime.now(timezone.utc).isoformat(),
+        "git_info": {},
+        "files": {},
+        "dependencies": {},
+        "todos": [],
+    }
+
+    project_path = Path(project_root)
+
+    # Detect git information
+    git_dir = project_path / ".git"
+    if git_dir.exists():
+        try:
+            # Get current branch
+            head_file = git_dir / "HEAD"
+            if head_file.exists():
+                head_content = head_file.read_text().strip()
+                if head_content.startswith("ref: refs/heads/"):
+                    env_info["git_info"]["branch"] = head_content.replace("ref: refs/heads/", "")
+        except Exception as e:
+            logger.debug(f"Failed to read git info: {e}")
+
+    # Detect common project files
+    common_files = [
+        "README.md",
+        "setup.py",
+        "pyproject.toml",
+        "requirements.txt",
+        "package.json",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "build.gradle",
+    ]
+
+    for file_name in common_files:
+        file_path = project_path / file_name
+        if file_path.exists():
+            env_info["files"][file_name] = str(file_path)
+
+    # Look for TODO files
+    todo_patterns = ["TODO.md", "TODO.txt", "TASKS.md"]
+    for pattern in todo_patterns:
+        for todo_file in project_path.glob(pattern):
+            env_info["todos"].append(str(todo_file))
+
+    # Save to project memory
+    save_memory(
+        content=env_info,
+        layer="project",
+        metadata={"type": "environment", "project_root": project_root},
+        key=f"env_{project_path.name}",
+    )
+
+    logger.info(f"Environment detected for project: {project_path.name}")
+    return env_info
+
+
+def add_turn_with_memory(thread_id: str, role: str, content: str, save_to_memory: bool = True, **kwargs) -> bool:
+    """
+    Enhanced version of add_turn that can save to memory layers.
+
+    This wraps the original add_turn function and adds memory functionality.
+    """
+    # Call original add_turn
+    success = add_turn(thread_id, role, content, **kwargs)
+
+    if not success or not ENABLE_ENHANCED_MEMORY or not AUTO_SAVE_MEMORY:
+        return success
+
+    # Determine which memory layer to use based on content
+    memory_layer = "session"  # Default
+
+    # Simple heuristics for layer selection
+    content_lower = content.lower()
+    if any(keyword in content_lower for keyword in ["architecture", "design pattern", "best practice"]):
+        memory_layer = "global"
+    elif any(keyword in content_lower for keyword in ["bug", "error", "issue", "todo"]):
+        memory_layer = "project"
+
+    # Save to memory
+    if save_to_memory:
+        save_memory(
+            content=content,
+            layer=memory_layer,
+            metadata={
+                "thread_id": thread_id,
+                "role": role,
+                "tool_name": kwargs.get("tool_name"),
+                "model_name": kwargs.get("model_name"),
+                "turn_type": "conversation",
+            },
+        )
+
+    return success
