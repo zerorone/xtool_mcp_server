@@ -1,13 +1,13 @@
 """
-Zen Advisor - 智能工具推荐系统
+Xtool Advisor - 智能工具推荐系统
 
-根据用户问题自动分析并推荐最合适的 Zen 工具，
+根据用户问题自动分析并推荐最合适的 Xtool 工具，
 提供 30 秒等待时间让用户确认或修改选择。
 """
 
 import logging
 import re
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class XtoolAdvisorRequest(ToolRequest):
-    """Zen Advisor 请求模型"""
+    """XTOOL Advisor 请求模型"""
 
     query: str = Field(..., description="用户的问题或需求描述")
     context: Optional[str] = Field(None, description="额外的上下文信息")
@@ -31,7 +31,7 @@ class XtoolAdvisorRequest(ToolRequest):
 
 class XtoolAdvisorTool(SimpleTool):
     """
-    智能工具推荐系统，根据用户问题自动分析并推荐合适的 Zen 工具。
+    智能工具推荐系统，根据用户问题自动分析并推荐合适的 Xtool 工具。
     """
 
     # 工具推荐规则
@@ -112,17 +112,17 @@ class XtoolAdvisorTool(SimpleTool):
 
     # 初始化标志
     _initialized = False
-    
+
     def __init__(self):
         super().__init__()
         self._initialize_thinking_modes()
-    
+
     @classmethod
     def _initialize_thinking_modes(cls):
         """初始化思维模式管理器（只执行一次）"""
         if cls._initialized:
             return
-            
+
         # 导入统一的思维模式管理器
         try:
             from utils.thinking_mode_manager import (
@@ -134,7 +134,7 @@ class XtoolAdvisorTool(SimpleTool):
 
             # 获取管理器实例
             thinking_manager = get_thinking_mode_manager()
-            
+
             # 将导入的内容存储为类属性
             cls.DevelopmentStage = DevelopmentStage
             cls.ProblemType = ProblemType
@@ -155,7 +155,7 @@ class XtoolAdvisorTool(SimpleTool):
 
                 # 合并核心和专业思维方法
                 EXTENDED_THINKING_MODES = {**CORE_THINKING_METHODS, **PROFESSIONAL_THINKING_METHODS}
-                
+
                 # 存储为类属性
                 cls.EXTENDED_THINKING_MODES = EXTENDED_THINKING_MODES
                 cls.STAGE_THINKING_MAP = STAGE_THINKING_MAP
@@ -214,16 +214,16 @@ class XtoolAdvisorTool(SimpleTool):
                 cls.STAGE_THINKING_MAP = {}
                 cls.PROBLEM_THINKING_MAP = {}
                 cls.THINKING_COMBINATIONS = {}
-        
+
         cls._initialized = True
 
     def _detect_code_development(self, query_lower: str) -> bool:
         """
         检测查询是否涉及代码开发，需要使用 context7 规范
-        
+
         Args:
             query_lower: 小写查询文本
-            
+
         Returns:
             bool: 是否需要 context7 规范
         """
@@ -238,22 +238,22 @@ class XtoolAdvisorTool(SimpleTool):
             "脚本", "程序", "应用", "系统实现",
             "script", "program", "application", "system implementation"
         ]
-        
+
         # 编程语言关键词
         language_keywords = [
             "python", "java", "javascript", "typescript", "c++", "c#", "go", "rust",
             "php", "ruby", "swift", "kotlin", "scala", "dart", "r", "matlab",
             "html", "css", "sql", "bash", "shell", "powershell"
         ]
-        
+
         # 开发框架关键词
         framework_keywords = [
-            "django", "flask", "fastapi", "spring", "springboot", 
+            "django", "flask", "fastapi", "spring", "springboot",
             "react", "vue", "angular", "nodejs", "express",
             "laravel", "rails", "asp.net", "gin", "echo",
             "pandas", "numpy", "tensorflow", "pytorch"
         ]
-        
+
         # 开发活动关键词
         dev_activity_keywords = [
             "写", "编写", "开发", "实现", "构建", "创建",
@@ -263,42 +263,42 @@ class XtoolAdvisorTool(SimpleTool):
             "重构代码", "优化代码", "修改代码", "改进代码",
             "refactor", "optimize code", "modify code", "improve code"
         ]
-        
+
         # 检查是否包含代码开发相关关键词
         all_keywords = code_dev_keywords + language_keywords + framework_keywords + dev_activity_keywords
-        
+
         for keyword in all_keywords:
             if keyword in query_lower:
                 return True
-                
+
         # 检查组合模式（更精确的检测）
         dev_patterns = [
             ("写", "代码"), ("编写", "程序"), ("开发", "功能"),
             ("实现", "逻辑"), ("创建", "类"), ("定义", "函数"),
             ("构建", "API"), ("设计", "接口"), ("编程", "实现")
         ]
-        
+
         for pattern in dev_patterns:
             if all(word in query_lower for word in pattern):
                 return True
-                
+
         return False
 
     def get_name(self) -> str:
-        return "zen_advisor"
+        return "xtool_advisor"
 
     def get_description(self) -> str:
         return (
-            "ZEN ADVISOR - 智能工具推荐系统。"
-            "根据您的问题自动分析并推荐最合适的 Zen 工具，"
+            "XTOOL ADVISOR - 智能工具推荐系统。"
+            "根据您的问题自动分析并推荐最合适的 Xtool 工具，"
             "提供个性化的思维模式建议，支持30秒确认机制。"
         )
 
     def get_system_prompt(self) -> str:
-        return """你是 Zen 工具集的智能顾问，负责：
+        return """你是 Xtool 工具集的智能顾问，负责：
 
 1. 分析用户问题，理解其真实需求
-2. 推荐最合适的 Zen 工具组合
+2. 推荐最合适的 Xtool 工具组合
 3. 提供个性化的思维模式建议
 4. 解释推荐理由和使用方法
 
@@ -335,7 +335,7 @@ class XtoolAdvisorTool(SimpleTool):
     def get_required_fields(self) -> list[str]:
         return ["query"]
 
-    def analyze_query(self, query: str, context: Optional[str] = None) -> Tuple[List[str], List[str], bool]:
+    def analyze_query(self, query: str, context: Optional[str] = None) -> tuple[list[str], list[str], bool]:
         """
         分析用户查询，返回推荐的工具、思维模式和是否需要context7规范。
 
@@ -515,8 +515,8 @@ class XtoolAdvisorTool(SimpleTool):
         context7_note = ""
         if needs_context7:
             context7_note = "\n🔧 **代码开发规范提示**：此查询涉及代码开发，建议使用 'use context7' 获取最新的语言文档和开发规范。"
-        
-        prompt = f"""请分析以下用户问题并提供 Zen 工具推荐：
+
+        prompt = f"""请分析以下用户问题并提供 Xtool 工具推荐：
 
 用户问题：{request.query}
 {f"上下文：{request.context}" if request.context else ""}
@@ -532,7 +532,7 @@ class XtoolAdvisorTool(SimpleTool):
 2. 工具推荐及理由
 3. 思维模式建议
 4. 使用指导
-{f"5. Context7 规范使用指导（如何使用 'use context7' 获取相关文档）" if needs_context7 else ""}
+{"5. Context7 规范使用指导（如何使用 'use context7' 获取相关文档）" if needs_context7 else ""}
 
 用户设置：
 - 自动执行：{"是" if request.auto_proceed else "否"}
@@ -572,7 +572,7 @@ class XtoolAdvisorTool(SimpleTool):
 基于分析，我推荐使用：
 
 **主要工具：** {self.TOOL_PATTERNS.get(tools[0], {}).get("description", tools[0]) if tools else "需要更多信息"}
-**命令：** `{tools[0]}` 
+**命令：** `{tools[0]}`
 
 **备选工具：**
 """
@@ -594,7 +594,8 @@ class XtoolAdvisorTool(SimpleTool):
                     if mode_obj:
                         formatted += f"- {mode_obj.name}：{mode_obj.description}\n"
                         continue
-                except:
+                except (AttributeError, KeyError):
+                    # 如果思维模式对象不存在或格式不正确，跳过
                     pass
 
             # 降级到原有逻辑

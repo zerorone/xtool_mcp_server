@@ -7,7 +7,8 @@
 
 import json
 import logging
-from abc import ABC
+
+# from abc import ABC  # 移除ABC导入，这是一个Mixin类
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
@@ -34,7 +35,7 @@ class ThinkingModeStrategy(Enum):
     HYBRID = "hybrid"  # 混合策略
 
 
-class DeepThinkingMixin(ABC):
+class DeepThinkingMixin:
     """
     深度思维模式混合类
 

@@ -17,7 +17,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class FileContentHash:
     """文件内容哈希管理"""
 
     def __init__(self):
-        self._hash_cache: Dict[str, Tuple[str, float, int]] = {}  # path -> (hash, mtime, size)
+        self._hash_cache: dict[str, tuple[str, float, int]] = {}  # path -> (hash, mtime, size)
         self._lock = threading.Lock()
 
     def get_file_hash(self, file_path: str) -> Optional[str]:
@@ -93,19 +93,19 @@ class ContentCache:
         self.max_disk_bytes = max_disk_mb * 1024 * 1024
 
         # 内存缓存: hash -> (content, access_time, size)
-        self._memory_cache: Dict[str, Tuple[str, float, int]] = {}
+        self._memory_cache: dict[str, tuple[str, float, int]] = {}
         self._memory_size = 0
         self._lock = threading.Lock()
 
         # 磁盘缓存目录
-        self.cache_dir = Path(".zen_memory/file_cache")
+        self.cache_dir = Path(".XTOOL_memory/file_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # 缓存元数据
         self._disk_metadata_file = self.cache_dir / "metadata.json"
         self._disk_metadata = self._load_disk_metadata()
 
-    def _load_disk_metadata(self) -> Dict[str, Dict[str, Any]]:
+    def _load_disk_metadata(self) -> dict[str, dict[str, Any]]:
         """加载磁盘缓存元数据"""
         try:
             if self._disk_metadata_file.exists():
@@ -270,7 +270,7 @@ class ContentCache:
         self._save_disk_metadata()
         logger.debug(f"清理了 {remove_count} 个磁盘缓存项")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取缓存统计信息"""
         with self._lock:
             memory_items = len(self._memory_cache)
@@ -342,7 +342,7 @@ class SmartFileSummarizer:
         functions = []
         constants = []
 
-        for i, line in enumerate(lines[: min(200, len(lines))]):  # 只分析前200行
+        for _i, line in enumerate(lines[: min(200, len(lines))]):  # 只分析前200行
             stripped = line.strip()
 
             # 导入语句
@@ -404,9 +404,9 @@ class SmartFileSummarizer:
         # 添加文件统计
         summary_parts.append("\n## 文件统计:")
         summary_parts.append(f"- 总行数: {len(lines)}")
-        summary_parts.append(f"- 非空行数: {len([l for l in lines if l.strip()])}")
+        summary_parts.append(f"- 非空行数: {len([line for line in lines if line.strip()])}")
         summary_parts.append(
-            f"- 估计代码行数: {len([l for l in lines if l.strip() and not l.strip().startswith('#')])}"
+            f"- 估计代码行数: {len([line for line in lines if line.strip() and not line.strip().startswith('#')])}"
         )
 
         return "\n".join(summary_parts)
@@ -440,7 +440,7 @@ class SmartFileSummarizer:
 
         summary_parts.append("\n## 文件统计:")
         summary_parts.append(f"- 总行数: {len(lines)}")
-        summary_parts.append(f"- 段落数: {len([l for l in lines if l.strip() == '']) + 1}")
+        summary_parts.append(f"- 段落数: {len([line for line in lines if line.strip() == '']) + 1}")
 
         return "\n".join(summary_parts)
 
@@ -554,8 +554,8 @@ class EnhancedFileProcessor:
         self._stats_lock = threading.Lock()
 
     async def process_files_optimized(
-        self, file_paths: List[str], token_budget: int, existing_files: Optional[Set[str]] = None
-    ) -> Tuple[str, Dict[str, Any]]:
+        self, file_paths: list[str], token_budget: int, existing_files: Optional[set[str]] = None
+    ) -> tuple[str, dict[str, Any]]:
         """优化的文件处理流程"""
 
         if not file_paths:
@@ -588,10 +588,10 @@ class EnhancedFileProcessor:
             "files_summarized": self.stats["files_summarized"],
         }
 
-    async def _parallel_file_analysis(self, file_paths: List[str]) -> List[Dict[str, Any]]:
+    async def _parallel_file_analysis(self, file_paths: list[str]) -> list[dict[str, Any]]:
         """并行分析文件信息"""
 
-        async def analyze_single_file(file_path: str) -> Optional[Dict[str, Any]]:
+        async def analyze_single_file(file_path: str) -> Optional[dict[str, Any]]:
             """分析单个文件"""
             try:
                 # 在线程池中运行，避免阻塞事件循环
@@ -627,7 +627,7 @@ class EnhancedFileProcessor:
 
         return file_info_list
 
-    def _analyze_file_sync(self, file_path: str) -> Optional[Dict[str, Any]]:
+    def _analyze_file_sync(self, file_path: str) -> Optional[dict[str, Any]]:
         """同步分析文件（在线程池中运行）"""
         try:
             path = Path(file_path)
@@ -732,7 +732,7 @@ class EnhancedFileProcessor:
 
         return priority
 
-    def _select_files_by_budget(self, file_info_list: List[Dict[str, Any]], token_budget: int) -> List[Dict[str, Any]]:
+    def _select_files_by_budget(self, file_info_list: list[dict[str, Any]], token_budget: int) -> list[dict[str, Any]]:
         """根据令牌预算选择文件"""
 
         # 按优先级排序（高优先级在前）
@@ -761,13 +761,13 @@ class EnhancedFileProcessor:
 
         return selected_files
 
-    async def _parallel_file_processing(self, selected_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def _parallel_file_processing(self, selected_files: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """并行处理选定的文件"""
 
-        async def process_single_file(file_info: Dict[str, Any]) -> Dict[str, Any]:
+        async def process_single_file(file_info: dict[str, Any]) -> dict[str, Any]:
             """处理单个文件"""
             try:
-                file_path = file_info["path"]
+                file_info["path"]
                 content_hash = file_info["hash"]
 
                 # 检查缓存
@@ -800,7 +800,7 @@ class EnhancedFileProcessor:
         # 限制并发数
         semaphore = asyncio.Semaphore(8)
 
-        async def bounded_process(file_info: Dict[str, Any]):
+        async def bounded_process(file_info: dict[str, Any]):
             async with semaphore:
                 return await process_single_file(file_info)
 
@@ -818,7 +818,7 @@ class EnhancedFileProcessor:
 
         return valid_results
 
-    def _read_and_process_file(self, file_info: Dict[str, Any]) -> Dict[str, Any]:
+    def _read_and_process_file(self, file_info: dict[str, Any]) -> dict[str, Any]:
         """读取和处理文件（在线程池中运行）"""
         try:
             file_path = file_info["path"]
@@ -852,7 +852,7 @@ class EnhancedFileProcessor:
             file_info["error"] = True
             return file_info
 
-    def _build_final_content(self, processed_files: List[Dict[str, Any]]) -> str:
+    def _build_final_content(self, processed_files: list[dict[str, Any]]) -> str:
         """构建最终的文件内容"""
 
         if not processed_files:
@@ -897,7 +897,7 @@ class EnhancedFileProcessor:
 
         return "\n".join(content_parts)
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """获取缓存统计信息"""
         cache_stats = self.content_cache.get_stats()
 
@@ -930,14 +930,14 @@ def get_enhanced_file_processor() -> EnhancedFileProcessor:
 
 # 便捷接口
 async def process_files_with_optimization(
-    file_paths: List[str], token_budget: int, existing_files: Optional[Set[str]] = None
-) -> Tuple[str, Dict[str, Any]]:
+    file_paths: list[str], token_budget: int, existing_files: Optional[set[str]] = None
+) -> tuple[str, dict[str, Any]]:
     """使用优化后的文件处理器处理文件"""
     processor = get_enhanced_file_processor()
     return await processor.process_files_optimized(file_paths, token_budget, existing_files)
 
 
-def get_file_processing_stats() -> Dict[str, Any]:
+def get_file_processing_stats() -> dict[str, Any]:
     """获取文件处理统计信息"""
     processor = get_enhanced_file_processor()
     return processor.get_cache_stats()

@@ -14,7 +14,7 @@ import time
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from utils.workflow_memory_fix import ThreadSafeWorkflowState
 
@@ -25,12 +25,12 @@ class PersistentStateBackend(ABC):
     """持久化状态后端抽象基类"""
 
     @abstractmethod
-    async def save_state(self, workflow_id: str, state: Dict[str, Any]) -> bool:
+    async def save_state(self, workflow_id: str, state: dict[str, Any]) -> bool:
         """保存工作流状态"""
         pass
 
     @abstractmethod
-    async def load_state(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def load_state(self, workflow_id: str) -> Optional[dict[str, Any]]:
         """加载工作流状态"""
         pass
 
@@ -40,7 +40,7 @@ class PersistentStateBackend(ABC):
         pass
 
     @abstractmethod
-    async def list_workflows(self) -> List[str]:
+    async def list_workflows(self) -> list[str]:
         """列出所有工作流ID"""
         pass
 
@@ -53,7 +53,7 @@ class PersistentStateBackend(ABC):
 class SQLiteStateBackend(PersistentStateBackend):
     """SQLite 持久化后端"""
 
-    def __init__(self, db_path: str = ".zen_memory/workflow_states.db"):
+    def __init__(self, db_path: str = ".XTOOL_memory/workflow_states.db"):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
@@ -74,7 +74,7 @@ class SQLiteStateBackend(PersistentStateBackend):
 
             # 创建索引以优化查询
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_updated_at 
+                CREATE INDEX IF NOT EXISTS idx_updated_at
                 ON workflow_states(updated_at)
             """)
             conn.commit()
@@ -92,7 +92,7 @@ class SQLiteStateBackend(PersistentStateBackend):
         finally:
             conn.close()
 
-    async def save_state(self, workflow_id: str, state: Dict[str, Any]) -> bool:
+    async def save_state(self, workflow_id: str, state: dict[str, Any]) -> bool:
         """保存工作流状态"""
         try:
             state_json = json.dumps(state, ensure_ascii=False, separators=(",", ":"))
@@ -102,9 +102,9 @@ class SQLiteStateBackend(PersistentStateBackend):
                 with self._get_connection() as conn:
                     conn.execute(
                         """
-                        INSERT OR REPLACE INTO workflow_states 
+                        INSERT OR REPLACE INTO workflow_states
                         (workflow_id, state_data, created_at, updated_at, access_count)
-                        VALUES (?, ?, 
+                        VALUES (?, ?,
                                COALESCE((SELECT created_at FROM workflow_states WHERE workflow_id = ?), ?),
                                ?,
                                COALESCE((SELECT access_count FROM workflow_states WHERE workflow_id = ?), 0) + 1)
@@ -120,14 +120,14 @@ class SQLiteStateBackend(PersistentStateBackend):
             logger.error(f"保存工作流状态失败 {workflow_id}: {e}")
             return False
 
-    async def load_state(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def load_state(self, workflow_id: str) -> Optional[dict[str, Any]]:
         """加载工作流状态"""
         try:
             with self._lock:
                 with self._get_connection() as conn:
                     cursor = conn.execute(
                         """
-                        SELECT state_data FROM workflow_states 
+                        SELECT state_data FROM workflow_states
                         WHERE workflow_id = ?
                     """,
                         (workflow_id,),
@@ -138,7 +138,7 @@ class SQLiteStateBackend(PersistentStateBackend):
                         # 更新访问计数
                         conn.execute(
                             """
-                            UPDATE workflow_states 
+                            UPDATE workflow_states
                             SET access_count = access_count + 1, updated_at = ?
                             WHERE workflow_id = ?
                         """,
@@ -178,13 +178,13 @@ class SQLiteStateBackend(PersistentStateBackend):
             logger.error(f"删除工作流状态失败 {workflow_id}: {e}")
             return False
 
-    async def list_workflows(self) -> List[str]:
+    async def list_workflows(self) -> list[str]:
         """列出所有工作流ID"""
         try:
             with self._lock:
                 with self._get_connection() as conn:
                     cursor = conn.execute("""
-                        SELECT workflow_id FROM workflow_states 
+                        SELECT workflow_id FROM workflow_states
                         ORDER BY updated_at DESC
                     """)
                     return [row[0] for row in cursor.fetchall()]
@@ -200,7 +200,7 @@ class SQLiteStateBackend(PersistentStateBackend):
                 with self._get_connection() as conn:
                     cursor = conn.execute(
                         """
-                        DELETE FROM workflow_states 
+                        DELETE FROM workflow_states
                         WHERE updated_at < ?
                     """,
                         (expire_before,),
@@ -216,13 +216,13 @@ class SQLiteStateBackend(PersistentStateBackend):
             logger.error(f"清理过期状态失败: {e}")
             return 0
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """获取数据库统计信息"""
         try:
             with self._lock:
                 with self._get_connection() as conn:
                     cursor = conn.execute("""
-                        SELECT 
+                        SELECT
                             COUNT(*) as total_workflows,
                             AVG(LENGTH(state_data)) as avg_state_size,
                             MAX(LENGTH(state_data)) as max_state_size,
@@ -251,7 +251,7 @@ class SQLiteStateBackend(PersistentStateBackend):
 class FileSystemStateBackend(PersistentStateBackend):
     """文件系统持久化后端（备用方案）"""
 
-    def __init__(self, storage_dir: str = ".zen_memory/workflow_states"):
+    def __init__(self, storage_dir: str = ".XTOOL_memory/workflow_states"):
         self.storage_path = Path(storage_dir)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
@@ -262,7 +262,7 @@ class FileSystemStateBackend(PersistentStateBackend):
         safe_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in workflow_id)
         return self.storage_path / f"{safe_id}.json"
 
-    async def save_state(self, workflow_id: str, state: Dict[str, Any]) -> bool:
+    async def save_state(self, workflow_id: str, state: dict[str, Any]) -> bool:
         """保存工作流状态到文件"""
         try:
             file_path = self._get_state_file(workflow_id)
@@ -281,7 +281,7 @@ class FileSystemStateBackend(PersistentStateBackend):
                     with open(file_path, encoding="utf-8") as f:
                         existing = json.load(f)
                         state_with_meta["created_at"] = existing.get("created_at", time.time())
-                except:
+                except (OSError, json.JSONDecodeError):
                     pass  # 如果读取失败，使用新的创建时间
 
             with self._lock:
@@ -295,7 +295,7 @@ class FileSystemStateBackend(PersistentStateBackend):
             logger.error(f"保存工作流状态到文件失败 {workflow_id}: {e}")
             return False
 
-    async def load_state(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def load_state(self, workflow_id: str) -> Optional[dict[str, Any]]:
         """从文件加载工作流状态"""
         try:
             file_path = self._get_state_file(workflow_id)
@@ -336,7 +336,7 @@ class FileSystemStateBackend(PersistentStateBackend):
             logger.error(f"删除工作流状态文件失败 {workflow_id}: {e}")
             return False
 
-    async def list_workflows(self) -> List[str]:
+    async def list_workflows(self) -> list[str]:
         """列出所有工作流ID"""
         try:
             workflow_files = []
@@ -349,7 +349,7 @@ class FileSystemStateBackend(PersistentStateBackend):
                             workflow_id = data.get("workflow_id")
                             if workflow_id:
                                 workflow_files.append((workflow_id, data.get("updated_at", 0)))
-                    except:
+                    except (OSError, json.JSONDecodeError, KeyError):
                         continue  # 跳过损坏的文件
 
             # 按更新时间排序
@@ -376,12 +376,12 @@ class FileSystemStateBackend(PersistentStateBackend):
                                 file_path.unlink()
                                 deleted_count += 1
                                 logger.debug(f"清理过期状态文件: {file_path}")
-                    except:
+                    except (OSError, json.JSONDecodeError, KeyError):
                         # 如果文件损坏，也删除它
                         try:
                             file_path.unlink()
                             deleted_count += 1
-                        except:
+                        except OSError:
                             pass
 
             if deleted_count > 0:
@@ -456,7 +456,7 @@ class PersistentWorkflowStateManager:
         except Exception as e:
             logger.error(f"同步到持久化存储失败: {e}")
 
-    async def save_state(self, workflow_id: str, state: Dict[str, Any]) -> bool:
+    async def save_state(self, workflow_id: str, state: dict[str, Any]) -> bool:
         """保存工作流状态（双写：内存+持久化）"""
         try:
             # 先写内存（快速访问）
@@ -478,7 +478,7 @@ class PersistentWorkflowStateManager:
             logger.error(f"保存工作流状态失败 {workflow_id}: {e}")
             return False
 
-    async def load_state(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def load_state(self, workflow_id: str) -> Optional[dict[str, Any]]:
         """加载工作流状态（优先内存，回退到持久化）"""
         try:
             # 先尝试从内存加载
@@ -511,7 +511,7 @@ class PersistentWorkflowStateManager:
             logger.error(f"删除工作流状态失败 {workflow_id}: {e}")
             return False
 
-    async def list_workflows(self) -> List[str]:
+    async def list_workflows(self) -> list[str]:
         """列出所有工作流ID（合并内存和持久化）"""
         try:
             # 获取内存中的工作流
@@ -528,7 +528,7 @@ class PersistentWorkflowStateManager:
             logger.error(f"列出工作流失败: {e}")
             return []
 
-    async def cleanup_expired(self, expire_hours: int = 24) -> Dict[str, int]:
+    async def cleanup_expired(self, expire_hours: int = 24) -> dict[str, int]:
         """清理过期状态"""
         try:
             expire_before = time.time() - (expire_hours * 3600)
@@ -545,7 +545,7 @@ class PersistentWorkflowStateManager:
             logger.error(f"清理过期状态失败: {e}")
             return {"persistent_deleted": 0, "expire_before_timestamp": 0}
 
-    async def get_comprehensive_stats(self) -> Dict[str, Any]:
+    async def get_comprehensive_stats(self) -> dict[str, Any]:
         """获取综合统计信息"""
         try:
             # 内存统计
@@ -585,13 +585,13 @@ def get_persistent_workflow_manager() -> PersistentWorkflowStateManager:
 
 
 # 便捷的异步接口
-async def save_workflow_state(workflow_id: str, state: Dict[str, Any]) -> bool:
+async def save_workflow_state(workflow_id: str, state: dict[str, Any]) -> bool:
     """保存工作流状态到持久化存储"""
     manager = get_persistent_workflow_manager()
     return await manager.save_state(workflow_id, state)
 
 
-async def load_workflow_state(workflow_id: str) -> Optional[Dict[str, Any]]:
+async def load_workflow_state(workflow_id: str) -> Optional[dict[str, Any]]:
     """从持久化存储加载工作流状态"""
     manager = get_persistent_workflow_manager()
     return await manager.load_state(workflow_id)
@@ -603,13 +603,13 @@ async def delete_workflow_state(workflow_id: str) -> bool:
     return await manager.delete_state(workflow_id)
 
 
-async def list_persisted_workflows() -> List[str]:
+async def list_persisted_workflows() -> list[str]:
     """列出所有持久化的工作流"""
     manager = get_persistent_workflow_manager()
     return await manager.list_workflows()
 
 
-async def cleanup_expired_workflows(expire_hours: int = 24) -> Dict[str, int]:
+async def cleanup_expired_workflows(expire_hours: int = 24) -> dict[str, int]:
     """清理过期的工作流状态"""
     manager = get_persistent_workflow_manager()
     return await manager.cleanup_expired(expire_hours)

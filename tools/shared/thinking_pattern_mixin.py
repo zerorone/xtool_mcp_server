@@ -9,7 +9,8 @@ This mixin provides thinking pattern capabilities to any tool, enabling:
 """
 
 import logging
-from abc import ABC
+
+# from abc import ABC  # 移除ABC导入，这是一个Mixin类
 from typing import Any, Optional
 
 from utils.conversation_memory import recall_memory, save_memory
@@ -18,7 +19,7 @@ from utils.thinking_patterns import ThinkingPattern, thinking_registry
 logger = logging.getLogger(__name__)
 
 
-class ThinkingPatternMixin(ABC):
+class ThinkingPatternMixin:
     """
     Mixin class that adds thinking pattern capabilities to any tool.
 

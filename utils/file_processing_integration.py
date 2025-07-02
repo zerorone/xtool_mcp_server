@@ -8,7 +8,7 @@
 import asyncio
 import logging
 import os
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Optional
 
 from utils.enhanced_file_processor import (
     cleanup_file_caches,
@@ -33,7 +33,7 @@ class FileProcessingIntegration:
         self.stats = {"optimized_calls": 0, "fallback_calls": 0, "total_time_saved": 0.0, "cache_hit_rate": 0.0}
 
     def should_use_optimized_processing(
-        self, files: List[str], max_tokens: int, context: Optional[Dict[str, Any]] = None
+        self, files: list[str], max_tokens: int, context: Optional[dict[str, Any]] = None
     ) -> bool:
         """判断是否应该使用优化的文件处理"""
 
@@ -57,20 +57,20 @@ class FileProcessingIntegration:
                     total_size += os.path.getsize(file_path)
                     if total_size > 1024 * 1024:  # 1MB总大小
                         return True
-        except:
+        except OSError:
             pass  # 文件访问错误时回退到原始处理
 
         return False
 
     async def process_files_enhanced(
         self,
-        files: List[str],
+        files: list[str],
         max_tokens: int = 50000,
         reserve_tokens: int = 1000,
         include_line_numbers: bool = True,
-        existing_files: Optional[Set[str]] = None,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> Tuple[str, List[str], Dict[str, Any]]:
+        existing_files: Optional[set[str]] = None,
+        context: Optional[dict[str, Any]] = None,
+    ) -> tuple[str, list[str], dict[str, Any]]:
         """
         增强的文件处理入口点
 
@@ -91,12 +91,12 @@ class FileProcessingIntegration:
 
     async def _process_with_optimization(
         self,
-        files: List[str],
+        files: list[str],
         max_tokens: int,
         reserve_tokens: int,
-        existing_files: Optional[Set[str]],
-        context: Optional[Dict[str, Any]],
-    ) -> Tuple[str, List[str], Dict[str, Any]]:
+        existing_files: Optional[set[str]],
+        context: Optional[dict[str, Any]],
+    ) -> tuple[str, list[str], dict[str, Any]]:
         """使用优化的文件处理器"""
 
         try:
@@ -128,12 +128,12 @@ class FileProcessingIntegration:
 
     async def _process_with_fallback(
         self,
-        files: List[str],
+        files: list[str],
         max_tokens: int,
         reserve_tokens: int,
         include_line_numbers: bool,
-        context: Optional[Dict[str, Any]],
-    ) -> Tuple[str, List[str], Dict[str, Any]]:
+        context: Optional[dict[str, Any]],
+    ) -> tuple[str, list[str], dict[str, Any]]:
         """使用原始文件处理器"""
 
         try:
@@ -197,12 +197,12 @@ def get_file_processing_integration() -> FileProcessingIntegration:
 
 # 兼容性接口：增强现有的文件处理函数
 async def read_files_enhanced(
-    files: List[str],
+    files: list[str],
     max_tokens: int = 50000,
     reserve_tokens: int = 1000,
     include_line_numbers: bool = True,
-    existing_files: Optional[Set[str]] = None,
-    context: Optional[Dict[str, Any]] = None,
+    existing_files: Optional[set[str]] = None,
+    context: Optional[dict[str, Any]] = None,
 ) -> str:
     """
     增强版的 read_files 函数，自动选择最优处理方式
@@ -224,13 +224,13 @@ async def read_files_enhanced(
 
 
 async def read_files_with_stats(
-    files: List[str],
+    files: list[str],
     max_tokens: int = 50000,
     reserve_tokens: int = 1000,
     include_line_numbers: bool = True,
-    existing_files: Optional[Set[str]] = None,
-    context: Optional[Dict[str, Any]] = None,
-) -> Tuple[str, Dict[str, Any]]:
+    existing_files: Optional[set[str]] = None,
+    context: Optional[dict[str, Any]] = None,
+) -> tuple[str, dict[str, Any]]:
     """
     读取文件并返回处理统计信息
     """
@@ -261,7 +261,7 @@ def enable_optimized_file_processing(enabled: bool = True):
         logger.info("已禁用优化文件处理，将使用原始方法")
 
 
-def get_comprehensive_file_stats() -> Dict[str, Any]:
+def get_comprehensive_file_stats() -> dict[str, Any]:
     """获取综合的文件处理统计信息"""
     integration = get_file_processing_integration()
 
@@ -296,13 +296,13 @@ class OptimizedFileHandler:
 
     @staticmethod
     async def prepare_file_content_optimized(
-        request_files: List[str],
+        request_files: list[str],
         max_tokens: int,
         reserve_tokens: int = 1000,
-        existing_files: Optional[Set[str]] = None,
+        existing_files: Optional[set[str]] = None,
         tool_name: str = "unknown",
         include_line_numbers: bool = True,
-    ) -> Tuple[str, List[str], Dict[str, Any]]:
+    ) -> tuple[str, list[str], dict[str, Any]]:
         """
         为工具优化的文件内容准备方法
 

@@ -1,5 +1,5 @@
 """
-Performance and Stress Test Suite for Zen MCP Server
+Performance and Stress Test Suite for xtool MCP Server
 
 This test suite evaluates the performance characteristics and stress handling
 capabilities of the MCP server under various load conditions.
@@ -301,7 +301,7 @@ class TestMemoryPressure:
             print(f"  {size / 1024:.0f}KB: {avg_time * 1000:.2f}ms average")
 
         # Assertions - larger content should still be reasonably fast
-        for size, times in timings.items():
+        for _size, times in timings.items():
             avg_time = sum(times) / len(times) if times else 0
             assert avg_time < 0.1  # Under 100ms even for large content
 
@@ -518,7 +518,7 @@ class TestStressScenarios:
 def run_performance_suite():
     """Run the complete performance test suite"""
     print("=" * 60)
-    print("Zen MCP Server Performance Test Suite")
+    print("xtool MCP Server Performance Test Suite")
     print("=" * 60)
 
     # Run all performance tests

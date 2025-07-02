@@ -6,14 +6,15 @@ enabling them to display progress in a standardized table format with phase and 
 """
 
 import logging
-from abc import ABC
+
+# from abc import ABC  # 移除ABC导入，这是一个Mixin类
 from datetime import datetime
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 
-class ProgressFormatterMixin(ABC):
+class ProgressFormatterMixin:
     """
     Mixin class that adds progress table formatting capabilities to workflow tools.
 
