@@ -133,7 +133,7 @@ def _detect_code_development(self, query_lower: str) -> bool:
 ### 2. 集成架构
 
 ```
-用户查询 -> zen_advisor.analyze_query()
+用户查询 -> xtool_advisor.analyze_query()
     |
     v
 检测代码开发场景 -> _detect_code_development()
@@ -167,7 +167,7 @@ export CONTEXT7_DETECTION_THRESHOLD=0.8
 
 ### 2. 自定义关键词
 
-开发者可以在 `zen_advisor.py` 中的 `_detect_code_development` 方法中添加自定义关键词：
+开发者可以在 `xtool_advisor.py` 中的 `_detect_code_development` 方法中添加自定义关键词：
 
 ```python
 # 添加新的编程语言
@@ -219,7 +219,7 @@ A: 目前支持15种主流编程语言，包括Python、Java、JavaScript等。�
 ### v1.0.0 (当前版本)
 - ✅ 实现基本的代码开发场景检测
 - ✅ 支持15种主流编程语言
-- ✅ 集成到 zen_advisor 工具
+- ✅ 集成到 xtool_advisor 工具
 - ✅ 提供完整的使用指导
 - ✅ 实现92.9%的检测准确率
 

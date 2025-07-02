@@ -19,7 +19,7 @@ from tools.simple.base import SimpleTool
 logger = logging.getLogger(__name__)
 
 
-class ZenAdvisorRequest(ToolRequest):
+class XtoolAdvisorRequest(ToolRequest):
     """Zen Advisor 请求模型"""
 
     query: str = Field(..., description="用户的问题或需求描述")
@@ -29,7 +29,7 @@ class ZenAdvisorRequest(ToolRequest):
     wait_time: Optional[int] = Field(30, description="等待用户确认的时间（秒）")
 
 
-class ZenAdvisorTool(SimpleTool):
+class XtoolAdvisorTool(SimpleTool):
     """
     智能工具推荐系统，根据用户问题自动分析并推荐合适的 Zen 工具。
     """
@@ -315,7 +315,7 @@ class ZenAdvisorTool(SimpleTool):
         return ToolModelCategory.BALANCED
 
     def get_request_model(self):
-        return ZenAdvisorRequest
+        return XtoolAdvisorRequest
 
     def get_tool_fields(self) -> dict[str, dict[str, Any]]:
         return {
@@ -503,7 +503,7 @@ class ZenAdvisorTool(SimpleTool):
 
         return recommended_tools, recommended_thinking, needs_context7
 
-    async def prepare_prompt(self, request: ZenAdvisorRequest) -> str:
+    async def prepare_prompt(self, request: XtoolAdvisorRequest) -> str:
         """准备分析提示"""
         # 分析查询
         tools, thinking_modes, needs_context7 = self.analyze_query(request.query, request.context)
@@ -540,7 +540,7 @@ class ZenAdvisorTool(SimpleTool):
 
         return prompt
 
-    def format_response(self, response: str, request: ZenAdvisorRequest, model_info: dict = None) -> str:
+    def format_response(self, response: str, request: XtoolAdvisorRequest, model_info: dict = None) -> str:
         """格式化响应，添加等待确认提示"""
         tools, thinking_modes, needs_context7 = self.analyze_query(request.query, request.context)
 

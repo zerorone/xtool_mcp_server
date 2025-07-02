@@ -17,13 +17,13 @@ Zen Advisor 是 Zen MCP Server 的智能顾问系统，能够根据您的问题�
 ### 基本用法
 
 ```bash
-zen_advisor --query="您的问题描述"
+xtool_advisor --query="您的问题描述"
 ```
 
 ### 高级选项
 
 ```bash
-zen_advisor --query="我的代码有bug" \
+xtool_advisor --query="我的代码有bug" \
            --context="这是一个Python项目" \
            --auto_proceed=true \
            --wait_time=30
@@ -41,7 +41,7 @@ zen_advisor --query="我的代码有bug" \
 ### 1. 调试问题
 
 ```bash
-zen_advisor --query="程序总是返回null，不知道为什么"
+xtool_advisor --query="程序总是返回null，不知道为什么"
 ```
 
 推荐结果：
@@ -51,7 +51,7 @@ zen_advisor --query="程序总是返回null，不知道为什么"
 ### 2. 代码审查
 
 ```bash
-zen_advisor --query="请帮我审查这段代码的质量"
+xtool_advisor --query="请帮我审查这段代码的质量"
 ```
 
 推荐结果：
@@ -61,7 +61,7 @@ zen_advisor --query="请帮我审查这段代码的质量"
 ### 3. 架构设计
 
 ```bash
-zen_advisor --query="如何设计一个高并发系统？"
+xtool_advisor --query="如何设计一个高并发系统？"
 ```
 
 推荐结果：
@@ -71,7 +71,7 @@ zen_advisor --query="如何设计一个高并发系统？"
 ### 4. 技术选型
 
 ```bash
-zen_advisor --query="React还是Vue，哪个更适合我的项目？"
+xtool_advisor --query="React还是Vue，哪个更适合我的项目？"
 ```
 
 推荐结果：
@@ -145,4 +145,4 @@ Zen Advisor 就像您的智能助手，帮助您：
 - 提高问题解决效率
 - 避免走弯路
 
-开始使用：`zen_advisor --query="您的第一个问题"`
+开始使用：`xtool_advisor --query="您的第一个问题"`

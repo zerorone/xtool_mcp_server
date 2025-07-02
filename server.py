@@ -82,7 +82,7 @@ from tools import (  # noqa: E402
     ThinkDeepTool,
     TracerTool,
     VersionTool,
-    ZenAdvisorTool,
+    XtoolAdvisorTool,
 )
 from tools.models import ToolOutput  # noqa: E402
 
@@ -287,7 +287,7 @@ TOOLS = {
     "memory": MemoryManagerTool(),  # Intelligent memory management with three-layer system
     "recall": MemoryRecallTool(),  # Token-aware memory recall with structured order
     "thinkboost": ThinkBoostTool(),  # Enhanced thinking patterns for Claude Code
-    "zen_advisor": ZenAdvisorTool(),  # Intelligent tool recommendation system with thinking modes
+    "zen_advisor": XtoolAdvisorTool(),  # Intelligent tool recommendation system with thinking modes
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
     # Monitoring and optimization tools

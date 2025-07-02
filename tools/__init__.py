@@ -21,7 +21,7 @@ from .thinkboost import ThinkBoostTool
 from .thinkdeep import ThinkDeepTool
 from .tracer import TracerTool
 from .version import VersionTool
-from .zen_advisor import ZenAdvisorTool
+from .xtool_advisor import XtoolAdvisorTool
 
 __all__ = [
     "ThinkDeepTool",
@@ -43,5 +43,5 @@ __all__ = [
     "ThinkBoostTool",
     "TracerTool",
     "VersionTool",
-    "ZenAdvisorTool",
+    "XtoolAdvisorTool",
 ]

@@ -438,9 +438,9 @@ class ComprehensiveThinkingModeTest:
         print("\n📋 测试10: Zen Advisor集成测试")
         
         try:
-            from tools.zen_advisor import ZenAdvisorTool
+            from tools.zen_advisor import XtoolAdvisorTool
             
-            advisor = ZenAdvisorTool()
+            advisor = XtoolAdvisorTool()
             
             # 测试关键场景
             test_scenarios = [
@@ -482,7 +482,7 @@ class ComprehensiveThinkingModeTest:
                 )
         
         except ImportError as e:
-            self.result.add_test("Zen Advisor导入", False, f"无法导入ZenAdvisorTool: {e}")
+            self.result.add_test("Zen Advisor导入", False, f"无法导入XtoolAdvisorTool: {e}")
         except Exception as e:
             self.result.add_test("Zen Advisor集成", False, f"集成测试失败: {e}")
     

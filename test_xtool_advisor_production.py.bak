@@ -11,16 +11,16 @@ from pathlib import Path
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, str(Path(__file__).parent))
 
-from tools.zen_advisor import ZenAdvisorTool, ZenAdvisorRequest
+from tools.xtool_advisor import XtoolAdvisorTool, XtoolAdvisorRequest
 
 
-def test_zen_advisor():
-    """测试 zen_advisor 工具"""
-    print("🧪 测试 Zen Advisor 生产环境功能")
+def test_xtool_advisor():
+    """测试 xtool_advisor 工具"""
+    print("🧪 测试 Xtool Advisor 生产环境功能")
     print("=" * 60)
     
     # 创建工具实例
-    advisor = ZenAdvisorTool()
+    advisor = XtoolAdvisorTool()
     
     # 测试场景
     test_cases = [
@@ -112,7 +112,7 @@ def test_zen_advisor():
             print("\n  ✅ 验证通过: 包含钻研精神和工匠精神")
     
     print("\n" + "=" * 60)
-    print("✅ 所有测试通过！Zen Advisor 在生产环境中工作正常")
+    print("✅ 所有测试通过！Xtool Advisor 在生产环境中工作正常")
     
     # 显示统计信息
     if hasattr(advisor, 'MANAGER_AVAILABLE') and advisor.MANAGER_AVAILABLE:
@@ -129,4 +129,4 @@ def test_zen_advisor():
 
 
 if __name__ == "__main__":
-    test_zen_advisor()
+    test_xtool_advisor()

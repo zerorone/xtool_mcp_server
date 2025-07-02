@@ -243,9 +243,9 @@ def test_zen_advisor_integration():
     print("=" * 60)
     
     try:
-        from tools.zen_advisor import ZenAdvisorTool
+        from tools.zen_advisor import XtoolAdvisorTool
         
-        advisor = ZenAdvisorTool()
+        advisor = XtoolAdvisorTool()
         
         # 测试查询分析
         test_queries = [
@@ -280,7 +280,7 @@ def test_zen_advisor_integration():
         print("\n✅ Zen Advisor 集成测试通过")
         
     except ImportError as e:
-        print(f"\n⚠️  无法导入 ZenAdvisorTool: {e}")
+        print(f"\n⚠️  无法导入 XtoolAdvisorTool: {e}")
         print("跳过集成测试")
 
 

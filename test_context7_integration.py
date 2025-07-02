@@ -12,7 +12,7 @@ from pathlib import Path
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, str(Path(__file__).parent))
 
-from tools.zen_advisor import ZenAdvisorTool, ZenAdvisorRequest
+from tools.zen_advisor import XtoolAdvisorTool, ZenAdvisorRequest
 
 
 def test_context7_detection():
@@ -21,7 +21,7 @@ def test_context7_detection():
     print("=" * 60)
     
     # 创建工具实例
-    advisor = ZenAdvisorTool()
+    advisor = XtoolAdvisorTool()
     
     # 测试场景：应该触发 Context7 的场景
     should_trigger_context7 = [
@@ -178,7 +178,7 @@ def test_context7_integration_with_advisor():
     print("\n🔗 测试 Context7 与 zen_advisor 的完整集成")
     print("=" * 60)
     
-    advisor = ZenAdvisorTool()
+    advisor = XtoolAdvisorTool()
     
     # 创建一个代码开发场景的请求
     request = ZenAdvisorRequest(
@@ -227,7 +227,7 @@ def test_context7_specific_languages():
     print("\n💻 测试特定编程语言的 Context7 检测")
     print("=" * 60)
     
-    advisor = ZenAdvisorTool()
+    advisor = XtoolAdvisorTool()
     
     language_tests = [
         ("Python", "用Python开发一个Web应用"),
