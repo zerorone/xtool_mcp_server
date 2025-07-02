@@ -28,6 +28,7 @@ from config import TEMPERATURE_ANALYTICAL
 from systemprompts import ANALYZE_PROMPT
 from tools.shared.base_models import WorkflowRequest
 
+from .shared.progress_formatter_mixin import ProgressFormatterMixin
 from .workflow.base import WorkflowTool
 
 logger = logging.getLogger(__name__)
@@ -155,7 +156,7 @@ class AnalyzeWorkflowRequest(WorkflowRequest):
         return self
 
 
-class AnalyzeTool(WorkflowTool):
+class AnalyzeTool(WorkflowTool, ProgressFormatterMixin):
     """
     Analyze workflow tool for step-by-step code analysis and expert validation.
 
@@ -551,20 +552,71 @@ class AnalyzeTool(WorkflowTool):
             next_steps = (
                 f"STOP! Do NOT call {self.get_name()} again yet. Based on your findings, you've identified areas that need "
                 f"deeper analysis. MANDATORY ACTIONS before calling {self.get_name()} step {step_number + 1}:\\n"
-                + "\\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+                + "\\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
                 + f"\\n\\nOnly call {self.get_name()} again with step_number: {step_number + 1} AFTER "
                 + "completing these analysis tasks."
             )
         else:
             next_steps = (
                 f"WAIT! Your analysis needs final verification. DO NOT call {self.get_name()} immediately. REQUIRED ACTIONS:\\n"
-                + "\\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+                + "\\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
                 + f"\\n\\nREMEMBER: Ensure you have identified all significant architectural insights and strategic "
                 f"opportunities across all areas. Document findings with specific file references and "
                 f"code examples where applicable, then call {self.get_name()} with step_number: {step_number + 1}."
             )
 
         return {"next_steps": next_steps}
+
+    def format_analysis_progress_table(self, request: AnalyzeWorkflowRequest) -> str:
+        """
+        Format analysis progress using the shared progress formatter.
+        """
+        # Get phase name
+        phase_name = self._get_phase_name(request)
+
+        # Count issues by severity
+        issues_by_severity = {}
+        if request.issues_found:
+            for issue in request.issues_found:
+                severity = issue.get("severity", "unknown")
+                issues_by_severity[severity] = issues_by_severity.get(severity, 0) + 1
+
+        # Additional stats specific to analysis
+        additional_stats = {
+            "analysis_type": request.analysis_type,
+            "output_format": request.output_format,
+            "code_elements_analyzed": len(request.relevant_context),
+        }
+
+        # Use the mixin's formatter
+        return self.format_progress_table(
+            step_number=request.step_number,
+            total_steps=request.total_steps,
+            phase_name=phase_name,
+            next_step_required=request.next_step_required,
+            findings_summary=request.findings,
+            files_examined=len(request.files_checked),
+            relevant_files=len(request.relevant_files),
+            issues_found=issues_by_severity,
+            additional_stats=additional_stats,
+        )
+
+    def _get_phase_name(self, request: AnalyzeWorkflowRequest) -> str:
+        """Determine the current analysis phase name based on type and progress"""
+        if request.analysis_type == "architecture":
+            phases = ["架构扫描", "模式识别", "依赖分析", "架构评估", "报告生成"]
+        elif request.analysis_type == "performance":
+            phases = ["性能扫描", "瓶颈识别", "资源分析", "优化建议", "报告生成"]
+        elif request.analysis_type == "security":
+            phases = ["安全扫描", "漏洞检测", "风险评估", "修复建议", "报告生成"]
+        elif request.analysis_type == "quality":
+            phases = ["质量扫描", "代码异味", "复杂度分析", "改进建议", "报告生成"]
+        else:
+            phases = ["初始扫描", "深度分析", "模式识别", "综合评估", "报告生成"]
+
+        # Map step number to phase
+        phase_index = min((request.step_number - 1) * len(phases) // request.total_steps, len(phases) - 1)
+        return phases[phase_index]
 
     def customize_workflow_response(self, response_data: dict, request) -> dict:
         """
@@ -612,6 +664,14 @@ class AnalyzeTool(WorkflowTool):
         # Map the completion flag to match analyze workflow
         if f"{tool_name}_complete" in response_data:
             response_data["analysis_complete"] = response_data.pop(f"{tool_name}_complete")
+
+        # Add progress table to the response
+        progress_table = self.format_analysis_progress_table(request)
+        if "message" in response_data:
+            # Prepend progress table to the message
+            response_data["message"] = progress_table + "\n\n" + response_data["message"]
+        else:
+            response_data["progress_report"] = progress_table
 
         return response_data
 

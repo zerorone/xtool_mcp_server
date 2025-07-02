@@ -228,11 +228,7 @@ async def test_enhanced_save_and_recall():
     assert len(payment_memories) >= 1
 
     # Test combined filters
-    python_global = intelligent_recall_memory(
-        tags=["python"],
-        layer="global",
-        limit=5
-    )
+    python_global = intelligent_recall_memory(tags=["python"], layer="global", limit=5)
     print(f"Python global memories found: {len(python_global)}")
 
     print("✓ Enhanced save and recall tests passed")

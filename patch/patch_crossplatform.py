@@ -3,7 +3,7 @@
 Complete patch for cross-platform test compatibility.
 
 This script automatically applies all necessary modifications to resolve
-cross-platform compatibility issues in the zen-mcp-server project.
+cross-platform compatibility issues in the xtool_mcp_server project.
 
 FIXED ISSUES:
 

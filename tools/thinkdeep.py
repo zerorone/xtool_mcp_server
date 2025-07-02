@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 from config import TEMPERATURE_CREATIVE
 from systemprompts import THINKDEEP_PROMPT
 from tools.shared.base_models import WorkflowRequest
+from tools.shared.thinking_pattern_mixin import ThinkingPatternMixin
 
 from .workflow.base import WorkflowTool
 
@@ -130,7 +131,7 @@ class ThinkDeepWorkflowRequest(WorkflowRequest):
     )
 
 
-class ThinkDeepTool(WorkflowTool):
+class ThinkDeepTool(WorkflowTool, ThinkingPatternMixin):
     """
     ThinkDeep Workflow Tool - Systematic Deep Thinking Analysis
 
@@ -202,7 +203,29 @@ class ThinkDeepTool(WorkflowTool):
 
     def get_system_prompt(self) -> str:
         """Return the system prompt for this workflow tool"""
-        return THINKDEEP_PROMPT
+        base_prompt = THINKDEEP_PROMPT
+
+        # Apply thinking patterns if they haven't been selected yet
+        if not hasattr(self, "applied_patterns") or not self.applied_patterns:
+            # Select patterns based on deep thinking context
+            context = "deep analysis and comprehensive reasoning"
+            self.select_thinking_patterns(context, problem_type="analysis")
+
+        # Enhance prompt with thinking patterns
+        if hasattr(self, "applied_patterns") and self.applied_patterns:
+            return self.apply_thinking_patterns(base_prompt, "deep thinking workflow")
+
+        return base_prompt
+
+    def get_default_thinking_patterns(self) -> list[str]:
+        """Define optimal thinking patterns for deep thinking tasks."""
+        return [
+            "Deep Analysis",  # For thorough examination
+            "Multi-Perspective",  # For considering different viewpoints
+            "Synthesis",  # For combining insights
+            "Meta-Cognitive",  # For thinking about thinking
+            "Philosophical Inquiry",  # For fundamental questions
+        ]
 
     def get_default_temperature(self) -> float:
         """Return default temperature for deep thinking"""
@@ -319,7 +342,7 @@ additional insights or alternative perspectives.
 
 ANALYSIS SCOPE:
 - Problem Context: {self._get_problem_context(request)}
-- Focus Areas: {', '.join(self._get_focus_areas(request))}
+- Focus Areas: {", ".join(self._get_focus_areas(request))}
 - Investigation Confidence: {request.confidence}
 - Steps Completed: {request.step_number} of {request.total_steps}
 
@@ -327,7 +350,7 @@ THINKING SUMMARY:
 {request.findings}
 
 KEY INSIGHTS AND CONTEXT:
-{', '.join(request.relevant_context) if request.relevant_context else 'No specific context identified'}
+{", ".join(request.relevant_context) if request.relevant_context else "No specific context identified"}
 
 VALIDATION OBJECTIVES:
 1. Assess the depth and quality of the thinking process

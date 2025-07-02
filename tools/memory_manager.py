@@ -28,7 +28,7 @@ from .simple.base import SimpleTool
 
 # Field descriptions for the memory manager tool
 MEMORY_FIELD_DESCRIPTIONS = {
-    "action": "Action to perform: save, recall, analyze, detect_env, rebuild_index, cleanup",
+    "action": "Action to perform: save, recall, analyze, detect_env, rebuild_index, cleanup, export, import",
     "content": "Content to save (for save action) or search query (for recall action)",
     "layer": "Memory layer: global (cross-project), project (current project), session (current session)",
     "metadata": "Additional metadata for the memory (tags, type, category, etc.)",
@@ -40,6 +40,12 @@ MEMORY_FIELD_DESCRIPTIONS = {
     "time_range": "Time range for filtering (start_date, end_date in ISO format)",
     "min_quality": "Minimum quality score for recall (0.0 to 1.0)",
     "match_mode": "Tag matching mode: 'any' (at least one tag) or 'all' (all tags must match)",
+    "export_format": "Export format: json, yaml, csv (for export action)",
+    "output_file": "Output file path for export or input file path for import",
+    "target_layers": "Layer mapping for import: {source_layer: target_layer}",
+    "merge_strategy": "Import merge strategy: skip_duplicates, overwrite, append_suffix",
+    "include_metadata": "Include metadata in export (boolean)",
+    "include_statistics": "Include statistics in export (boolean)",
 }
 
 
@@ -58,6 +64,12 @@ class MemoryManagerRequest(ToolRequest):
     time_range: Optional[list[str]] = Field(None, description=MEMORY_FIELD_DESCRIPTIONS["time_range"])
     min_quality: Optional[float] = Field(0.3, description=MEMORY_FIELD_DESCRIPTIONS["min_quality"])
     match_mode: Optional[str] = Field("any", description=MEMORY_FIELD_DESCRIPTIONS["match_mode"])
+    export_format: Optional[str] = Field("json", description=MEMORY_FIELD_DESCRIPTIONS["export_format"])
+    output_file: Optional[str] = Field(None, description=MEMORY_FIELD_DESCRIPTIONS["output_file"])
+    target_layers: Optional[dict] = Field(None, description=MEMORY_FIELD_DESCRIPTIONS["target_layers"])
+    merge_strategy: Optional[str] = Field("skip_duplicates", description=MEMORY_FIELD_DESCRIPTIONS["merge_strategy"])
+    include_metadata: Optional[bool] = Field(True, description=MEMORY_FIELD_DESCRIPTIONS["include_metadata"])
+    include_statistics: Optional[bool] = Field(True, description=MEMORY_FIELD_DESCRIPTIONS["include_statistics"])
 
 
 class MemoryManagerTool(SimpleTool):
@@ -78,14 +90,9 @@ class MemoryManagerTool(SimpleTool):
         return "memory"
 
     def get_request_model_name(self, request) -> Optional[str]:
-        """Override model selection to use configured memory tool model"""
-        # Check if there's a specific model configured for memory tool
-        memory_model = os.getenv("MEMORY_TOOL_MODEL")
-        if memory_model:
-            return memory_model
-
-        # Otherwise use the default behavior
-        return super().get_request_model_name(request)
+        """Override model selection to always use Gemini 2.5 Flash for memory operations"""
+        # 强制记忆模块只使用 Gemini 2.5 Flash 模型
+        return "gemini-2.5-flash"
 
     def requires_ai_model(self, request: MemoryManagerRequest) -> bool:
         """
@@ -95,7 +102,7 @@ class MemoryManagerTool(SimpleTool):
         Recall and analyze operations might benefit from AI assistance.
         """
         # Direct operations that don't need AI
-        if request.action in ["save", "detect_env", "rebuild_index", "cleanup"]:
+        if request.action in ["save", "detect_env", "rebuild_index", "cleanup", "export", "import"]:
             return False
 
         # Recall and analyze might use AI for better results
@@ -233,7 +240,7 @@ Always optimize for:
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["save", "recall", "analyze", "detect_env", "rebuild_index", "cleanup"],
+                    "enum": ["save", "recall", "analyze", "detect_env", "rebuild_index", "cleanup", "export", "import"],
                     "description": MEMORY_FIELD_DESCRIPTIONS["action"],
                 },
                 "content": {"type": "string", "description": MEMORY_FIELD_DESCRIPTIONS["content"]},
@@ -283,6 +290,30 @@ Always optimize for:
                     "default": "any",
                     "description": MEMORY_FIELD_DESCRIPTIONS["match_mode"],
                 },
+                "export_format": {
+                    "type": "string",
+                    "enum": ["json", "yaml", "csv"],
+                    "default": "json",
+                    "description": MEMORY_FIELD_DESCRIPTIONS["export_format"],
+                },
+                "output_file": {"type": "string", "description": MEMORY_FIELD_DESCRIPTIONS["output_file"]},
+                "target_layers": {"type": "object", "description": MEMORY_FIELD_DESCRIPTIONS["target_layers"]},
+                "merge_strategy": {
+                    "type": "string",
+                    "enum": ["skip_duplicates", "overwrite", "append_suffix"],
+                    "default": "skip_duplicates",
+                    "description": MEMORY_FIELD_DESCRIPTIONS["merge_strategy"],
+                },
+                "include_metadata": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": MEMORY_FIELD_DESCRIPTIONS["include_metadata"],
+                },
+                "include_statistics": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": MEMORY_FIELD_DESCRIPTIONS["include_statistics"],
+                },
             },
         }
 
@@ -315,8 +346,12 @@ Always optimize for:
             return await self._prepare_rebuild_index_prompt(request)
         elif action == "cleanup":
             return await self._prepare_cleanup_prompt(request)
+        elif action == "export":
+            return await self._prepare_export_prompt(request)
+        elif action == "import":
+            return await self._prepare_import_prompt(request)
         else:
-            return f"Unknown memory action: {action}. Please use one of: save, recall, analyze, detect_env, rebuild_index, cleanup"
+            return f"Unknown memory action: {action}. Please use one of: save, recall, analyze, detect_env, rebuild_index, cleanup, export, import"
 
     async def _prepare_save_prompt(self, request: MemoryManagerRequest) -> str:
         """Prepare prompt for save action"""
@@ -357,8 +392,8 @@ Memory Details:
 - Key: {key}
 - Layer: {request.layer}
 {file_info}
-- Content: {request.content[:100]}{'...' if len(request.content) > 100 else ''}
-- Metadata: {request.metadata if request.metadata else 'None'}
+- Content: {request.content[:100]}{"..." if len(request.content) > 100 else ""}
+- Metadata: {request.metadata if request.metadata else "None"}
 {enhanced_info}
 
 The memory has been indexed and can be recalled using:
@@ -377,6 +412,7 @@ The memory has been indexed and can be recalled using:
         if request.time_range and len(request.time_range) == 2:
             try:
                 from datetime import datetime, timezone
+
                 start_date = datetime.fromisoformat(request.time_range[0].replace("Z", "+00:00"))
                 end_date = datetime.fromisoformat(request.time_range[1].replace("Z", "+00:00"))
                 time_range = (start_date, end_date)
@@ -388,24 +424,24 @@ The memory has been indexed and can be recalled using:
         use_advanced = False
         if request.content:  # 有查询文本时使用高级召回
             use_advanced = True
-        
+
         if use_advanced:
             # 使用高级召回算法
             from utils.memory_recall_algorithms import advanced_memory_recall
-            
+
             # 构建上下文信息
             context = {}
             if request.layer:
-                context['layer'] = request.layer
+                context["layer"] = request.layer
             if request.tags:
-                context['tags'] = request.tags
+                context["tags"] = request.tags
             if request.mem_type:
-                context['type'] = request.mem_type
+                context["type"] = request.mem_type
             if request.importance:
-                context['importance'] = request.importance
+                context["importance"] = request.importance
             if time_range:
-                context['timestamp'] = datetime.now(timezone.utc).isoformat()
-            
+                context["timestamp"] = datetime.now(timezone.utc).isoformat()
+
             memories = advanced_memory_recall(
                 query=request.content,
                 context=context if context else None,
@@ -439,24 +475,24 @@ The memory has been indexed and can be recalled using:
                 result += f"   Layer: {memory.get('layer')}\n"
                 result += f"   Key: {memory.get('key')}\n"
                 result += f"   Relevance: {memory.get('relevance_score', 0):.2f}\n"
-                
+
                 # 显示高级评分（如果有）
-                advanced_scores = memory.get('advanced_scores')
+                advanced_scores = memory.get("advanced_scores")
                 if advanced_scores:
-                    result += f"   高级评分:\n"
-                    if advanced_scores.get('semantic', 0) > 0:
+                    result += "   高级评分:\n"
+                    if advanced_scores.get("semantic", 0) > 0:
                         result += f"     - 语义匹配: {advanced_scores['semantic']:.2f}\n"
-                    if advanced_scores.get('pattern', 0) > 0:
+                    if advanced_scores.get("pattern", 0) > 0:
                         result += f"     - 思维模式: {advanced_scores['pattern']:.2f}\n"
-                    if advanced_scores.get('context', 0) > 0:
+                    if advanced_scores.get("context", 0) > 0:
                         result += f"     - 上下文相似: {advanced_scores['context']:.2f}\n"
 
                 # Show content preview
-                content = memory.get('content', '')
+                content = memory.get("content", "")
                 if isinstance(content, str):
-                    content_preview = content[:200] + '...' if len(content) > 200 else content
+                    content_preview = content[:200] + "..." if len(content) > 200 else content
                 else:
-                    content_preview = str(content)[:200] + '...' if len(str(content)) > 200 else str(content)
+                    content_preview = str(content)[:200] + "..." if len(str(content)) > 200 else str(content)
                 result += f"   Content: {content_preview}\n"
 
                 # Show metadata with enhanced fields
@@ -494,12 +530,15 @@ The memory has been indexed and can be recalled using:
                 filters_desc.append(f"layer: {request.layer}")
 
             filter_info = f" with filters ({', '.join(filters_desc)})" if filters_desc else ""
-            return f"No matching memories found{filter_info}. Try adjusting your search criteria or use broader filters."
+            return (
+                f"No matching memories found{filter_info}. Try adjusting your search criteria or use broader filters."
+            )
 
     async def _prepare_analyze_prompt(self, request: MemoryManagerRequest) -> str:
         """Prepare prompt for analyze action"""
         # Get index statistics
-        from utils.enhanced_memory import get_memory_index
+        from utils.intelligent_memory_retrieval import get_memory_index
+
         index = get_memory_index()
 
         # Get all memories for detailed analysis
@@ -562,9 +601,9 @@ The memory has been indexed and can be recalled using:
 - Memory types: {len(index.type_index)}
 
 **Distribution by Layer:**
-- Global: {layer_stats['global']} memories ({layer_stats['global']/max(len(all_memories), 1)*100:.1f}%)
-- Project: {layer_stats['project']} memories ({layer_stats['project']/max(len(all_memories), 1)*100:.1f}%)
-- Session: {layer_stats['session']} memories ({layer_stats['session']/max(len(all_memories), 1)*100:.1f}%)
+- Global: {layer_stats["global"]} memories ({layer_stats["global"] / max(len(all_memories), 1) * 100:.1f}%)
+- Project: {layer_stats["project"]} memories ({layer_stats["project"] / max(len(all_memories), 1) * 100:.1f}%)
+- Session: {layer_stats["session"]} memories ({layer_stats["session"] / max(len(all_memories), 1) * 100:.1f}%)
 
 **Distribution by Type:**
 {chr(10).join(f"- {t}: {c} memories" for t, c in sorted(type_stats.items(), key=lambda x: x[1], reverse=True))}
@@ -573,12 +612,12 @@ The memory has been indexed and can be recalled using:
 {chr(10).join(f"- {tag}: {count} occurrences" for tag, count in top_tags)}
 
 **Quality Distribution:**
-- High quality (≥0.7): {quality_distribution['high']} memories ({quality_distribution['high']/max(len(all_memories), 1)*100:.1f}%)
-- Medium quality (0.4-0.7): {quality_distribution['medium']} memories ({quality_distribution['medium']/max(len(all_memories), 1)*100:.1f}%)
-- Low quality (<0.4): {quality_distribution['low']} memories ({quality_distribution['low']/max(len(all_memories), 1)*100:.1f}%)
+- High quality (≥0.7): {quality_distribution["high"]} memories ({quality_distribution["high"] / max(len(all_memories), 1) * 100:.1f}%)
+- Medium quality (0.4-0.7): {quality_distribution["medium"]} memories ({quality_distribution["medium"] / max(len(all_memories), 1) * 100:.1f}%)
+- Low quality (<0.4): {quality_distribution["low"]} memories ({quality_distribution["low"] / max(len(all_memories), 1) * 100:.1f}%)
 
 **Access Patterns:**
-- Memories accessed at least once: {memories_with_access} ({memories_with_access/max(len(all_memories), 1)*100:.1f}%)
+- Memories accessed at least once: {memories_with_access} ({memories_with_access / max(len(all_memories), 1) * 100:.1f}%)
 - Average access count: {avg_access:.1f}
 - Total accesses: {total_access_count}
 
@@ -603,14 +642,14 @@ Provide comprehensive insights on:
             # Return environment analysis prompt for AI to process
             return f"""Analyze the detected project environment and provide a comprehensive summary:
 
-Project Root: {env_info.get('project_root')}
-Git Branch: {env_info.get('git_info', {}).get('branch', 'Not detected')}
+Project Root: {env_info.get("project_root")}
+Git Branch: {env_info.get("git_info", {}).get("branch", "Not detected")}
 
 Project Files Found:
-{chr(10).join(f"- {name}: {path}" for name, path in env_info.get('files', {}).items())}
+{chr(10).join(f"- {name}: {path}" for name, path in env_info.get("files", {}).items())}
 
 TODO Files:
-{chr(10).join(f"- {todo}" for todo in env_info.get('todos', []))}
+{chr(10).join(f"- {todo}" for todo in env_info.get("todos", []))}
 
 Provide:
 1. Project type identification (language, framework, etc.)
@@ -638,9 +677,9 @@ Index Statistics:
 - Unique tags: {tag_count}
 - Memory types: {type_count}
 - Layer distribution:
-  - Global: {layer_stats.get('global', 0)} entries
-  - Project: {layer_stats.get('project', 0)} entries
-  - Session: {layer_stats.get('session', 0)} entries
+  - Global: {layer_stats.get("global", 0)} entries
+  - Project: {layer_stats.get("project", 0)} entries
+  - Session: {layer_stats.get("session", 0)} entries
 
 The index has been optimized for fast multi-dimensional searches:
 - Tag-based filtering
@@ -657,7 +696,8 @@ All memories are now properly indexed and searchable."""
         """Prepare prompt for cleanup action"""
         try:
             # Get initial count
-            from utils.enhanced_memory import get_memory_index
+            from utils.intelligent_memory_retrieval import get_memory_index
+
             index_before = get_memory_index()
             count_before = len(index_before.memory_metadata)
 
@@ -677,8 +717,8 @@ Cleanup Results:
 - Memories removed: {removed_count}
 
 Cleanup criteria:
-- Age threshold: Memories older than {os.getenv('MEMORY_DECAY_DAYS', '30')} days
-- Quality threshold: Memories with quality score below {os.getenv('MEMORY_QUALITY_THRESHOLD', '0.3')}
+- Age threshold: Memories older than {os.getenv("MEMORY_DECAY_DAYS", "30")} days
+- Quality threshold: Memories with quality score below {os.getenv("MEMORY_QUALITY_THRESHOLD", "0.3")}
 
 The memory system has been optimized by removing old, low-quality entries while preserving important knowledge."""
         except Exception as e:
@@ -704,3 +744,105 @@ The memory system has been optimized by removing old, low-quality entries while 
                         logger.info(f"Found {len(env_info['todos'])} TODO files")
             except Exception as e:
                 logger.debug(f"Failed to auto-detect environment: {e}")
+
+    async def _prepare_export_prompt(self, request: MemoryManagerRequest) -> str:
+        """Prepare prompt for export action"""
+        from utils.memory_lifecycle import export_memories
+
+        try:
+            # 确定要导出的层
+            layers = None
+            if request.layer:
+                layers = [request.layer]
+
+            # 执行导出
+            result = export_memories(
+                layers=layers,
+                export_format=request.export_format or "json",
+                include_metadata=request.include_metadata if request.include_metadata is not None else True,
+                include_statistics=request.include_statistics if request.include_statistics is not None else True,
+                output_file=request.output_file,
+            )
+
+            if result.get("success", False):
+                return f"""记忆导出成功！
+
+导出详情:
+- 输出文件: {result["output_file"]}
+- 导出数量: {result["total_exported"]} 条记忆
+- 导出层级: {", ".join(result["layers"])}
+- 导出格式: {request.export_format or "json"}
+- 包含元数据: {"是" if request.include_metadata else "否"}
+- 包含统计: {"是" if request.include_statistics else "否"}
+
+文件已保存到指定位置，可用于备份、迁移或数据分析。"""
+
+            elif request.output_file is None:
+                # 返回数据而非保存文件
+                stats = result.get("statistics", {}).get("global_summary", {})
+                return f"""记忆数据导出完成！
+
+导出统计:
+- 总计记忆数: {stats.get("total_memories_exported", 0)}
+- 导出层数: {stats.get("layers_count", 0)}
+- 导出时间: {stats.get("export_timestamp", "N/A")}
+
+数据已准备完毕，请指定 output_file 参数以保存到文件。"""
+
+            else:
+                error_msg = result.get("error", "未知错误")
+                return f"记忆导出失败: {error_msg}"
+
+        except Exception as e:
+            return f"记忆导出时发生错误: {str(e)}"
+
+    async def _prepare_import_prompt(self, request: MemoryManagerRequest) -> str:
+        """Prepare prompt for import action"""
+        from utils.memory_lifecycle import import_memories
+
+        if not request.output_file:
+            return "错误: 导入操作需要指定 output_file 参数作为导入文件路径。"
+
+        try:
+            # 执行导入
+            result = import_memories(
+                import_file=request.output_file,
+                target_layers=request.target_layers,
+                merge_strategy=request.merge_strategy or "skip_duplicates",
+                validate_data=True,
+            )
+
+            if result.get("success", False):
+                return f"""记忆导入成功！
+
+导入结果:
+- 源文件: {result["source_file"]}
+- 导入数量: {result["imported_count"]} 条记忆
+- 跳过数量: {result["skipped_count"]} 条记忆 (重复)
+- 错误数量: {result["error_count"]} 条记忆
+- 合并策略: {result["merge_strategy"]}
+
+各层级导入详情:
+{self._format_layer_stats(result.get("layer_stats", {}))}
+
+记忆索引已自动重建，所有导入的记忆现在可以正常搜索和召回。"""
+
+            else:
+                error_msg = result.get("error", "未知错误")
+                return f"记忆导入失败: {error_msg}"
+
+        except Exception as e:
+            return f"记忆导入时发生错误: {str(e)}"
+
+    def _format_layer_stats(self, layer_stats: dict) -> str:
+        """格式化层级统计信息"""
+        if not layer_stats:
+            return "- 无层级统计信息"
+
+        lines = []
+        for layer, stats in layer_stats.items():
+            lines.append(
+                f"- {layer}: 导入 {stats.get('imported', 0)}, 跳过 {stats.get('skipped', 0)}, 错误 {stats.get('errors', 0)}"
+            )
+
+        return "\n".join(lines)

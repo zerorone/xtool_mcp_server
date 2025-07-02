@@ -6,8 +6,8 @@ This guide covers deploying Zen MCP Server using Docker and Docker Compose for p
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/BeehiveInnovations/zen-mcp-server.git
-   cd zen-mcp-server
+   git clone https://github.com/BeehiveInnovations/xtool_mcp_server.git
+   cd xtool_mcp_server
    ```
 
 2. **Configure environment variables**:
@@ -154,7 +154,7 @@ docker-compose ps
 docker-compose logs -f zen-mcp
 
 # View health status
-docker inspect zen-mcp-server --format='{{.State.Health.Status}}'
+docker inspect xtool_mcp_server --format='{{.State.Health.Status}}'
 ```
 
 ### Stopping the Service
@@ -233,7 +233,7 @@ ports:
 docker-compose logs zen-mcp
 
 # Manual health check
-docker exec zen-mcp-server python /usr/local/bin/healthcheck.py
+docker exec xtool_mcp_server python /usr/local/bin/healthcheck.py
 ```
 
 **2. Permission errors:**
@@ -252,7 +252,7 @@ cat .env
 **4. API key validation errors:**
 ```bash
 # Check environment variables in container
-docker exec zen-mcp-server env | grep -E "(GEMINI|OPENAI|XAI)"
+docker exec xtool_mcp_server env | grep -E "(GEMINI|OPENAI|XAI)"
 ```
 
 ### Debug Mode
@@ -319,7 +319,7 @@ deploy:
 
 Monitor memory usage:
 ```bash
-docker stats zen-mcp-server
+docker stats xtool_mcp_server
 ```
 
 Adjust Python memory settings if needed:
@@ -346,10 +346,10 @@ Configure Claude Desktop to use the containerized server. **Choose one of the co
         "--rm",
         "-i",
         "--env-file",
-        "/absolute/path/to/zen-mcp-server/.env",
+        "/absolute/path/to/xtool_mcp_server/.env",
         "-v",
-        "/absolute/path/to/zen-mcp-server/logs:/app/logs",
-        "zen-mcp-server:latest"
+        "/absolute/path/to/xtool_mcp_server/logs:/app/logs",
+        "xtool_mcp_server:latest"
       ]
     }
   }
@@ -367,10 +367,10 @@ Configure Claude Desktop to use the containerized server. **Choose one of the co
         "--rm",
         "-i",
         "--env-file",
-        "C:/path/to/zen-mcp-server/.env",
+        "C:/path/to/xtool_mcp_server/.env",
         "-v",
-        "C:/path/to/zen-mcp-server/logs:/app/logs",
-        "zen-mcp-server:latest"
+        "C:/path/to/xtool_mcp_server/logs:/app/logs",
+        "xtool_mcp_server:latest"
       ]
     }
   }
@@ -387,7 +387,7 @@ Configure Claude Desktop to use the containerized server. **Choose one of the co
     "zen-mcp": {
       "command": "docker-compose",
       "args": [
-        "-f", "/absolute/path/to/zen-mcp-server/docker-compose.yml",
+        "-f", "/absolute/path/to/xtool_mcp_server/docker-compose.yml",
         "run", "--rm", "zen-mcp"
       ]
     }
@@ -412,7 +412,7 @@ Configure Claude Desktop to use the containerized server. **Choose one of the co
         "-e", "LOG_LEVEL=INFO",
         "-e", "DEFAULT_MODEL=auto",
         "-v", "/path/to/logs:/app/logs",
-        "zen-mcp-server:latest"
+        "xtool_mcp_server:latest"
       ]
     }
   }
@@ -422,7 +422,7 @@ Configure Claude Desktop to use the containerized server. **Choose one of the co
 ### Configuration Notes
 
 **Important notes:**
-- Replace `/absolute/path/to/zen-mcp-server` with the actual path to your project.
+- Replace `/absolute/path/to/xtool_mcp_server` with the actual path to your project.
 - Always use forward slashes `/` for Docker volumes, even on Windows.
 - Ensure the `.env` file exists and contains your API keys.
 - **Persistent volumes**: Docker Compose options (Options 2) automatically use the `zen-mcp-config` named volume for persistent configuration storage.
@@ -436,7 +436,7 @@ OPENAI_API_KEY=your_openai_key
 ```
 
 **Troubleshooting:**
-- If Option 1 fails: check that the Docker image exists (`docker images zen-mcp-server`).
+- If Option 1 fails: check that the Docker image exists (`docker images xtool_mcp_server`).
 - If Option 2 fails: verify the compose file path and ensure the service is not already in use.
 - Permission issues: make sure the `logs` folder is writable.
 

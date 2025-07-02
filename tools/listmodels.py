@@ -88,6 +88,9 @@ class ListModelsTool(BaseTool):
         from providers.openrouter_registry import OpenRouterModelRegistry
         from providers.registry import ModelProviderRegistry
 
+        # Ensure providers are configured before listing
+        self._ensure_providers_configured()
+
         output_lines = ["# Available AI Models\n"]
 
         # Map provider types to friendly names and their models
@@ -318,3 +321,64 @@ class ListModelsTool(BaseTool):
     def get_model_category(self) -> ToolModelCategory:
         """Return the model category for this tool."""
         return ToolModelCategory.FAST_RESPONSE  # Simple listing, no AI needed
+
+    def _ensure_providers_configured(self) -> None:
+        """Ensure all providers are properly configured and registered."""
+        import os
+
+        from providers.base import ProviderType
+        from providers.registry import ModelProviderRegistry
+
+        # Check if providers are already registered
+        existing_providers = []
+        for provider_type in ProviderType:
+            if ModelProviderRegistry.get_provider(provider_type):
+                existing_providers.append(provider_type)
+
+        # If we already have providers registered, no need to reconfigure
+        if existing_providers:
+            return
+
+        # Import provider classes
+        from providers.custom import CustomProvider
+        from providers.dial import DIALModelProvider
+        from providers.gemini import GeminiModelProvider
+        from providers.openai_provider import OpenAIModelProvider
+        from providers.openrouter import OpenRouterProvider
+        from providers.xai import XAIModelProvider
+
+        # Register providers based on available API keys
+        # Check for Gemini API key
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if gemini_key and gemini_key != "your_gemini_api_key_here":
+            ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)
+
+        # Check for OpenAI API key
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key and openai_key != "your_openai_api_key_here":
+            ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
+
+        # Check for X.AI API key
+        xai_key = os.getenv("XAI_API_KEY")
+        if xai_key and xai_key != "your_xai_api_key_here":
+            ModelProviderRegistry.register_provider(ProviderType.XAI, XAIModelProvider)
+
+        # Check for DIAL API key
+        dial_key = os.getenv("DIAL_API_KEY")
+        if dial_key and dial_key != "your_dial_api_key_here":
+            ModelProviderRegistry.register_provider(ProviderType.DIAL, DIALModelProvider)
+
+        # Check for OpenRouter API key
+        openrouter_key = os.getenv("OPENROUTER_API_KEY")
+        if openrouter_key and openrouter_key != "your_openrouter_api_key_here":
+            ModelProviderRegistry.register_provider(ProviderType.OPENROUTER, OpenRouterProvider)
+
+        # Check for custom API endpoint
+        custom_url = os.getenv("CUSTOM_API_URL")
+        if custom_url:
+
+            def custom_provider_factory(api_key=None):
+                base_url = os.getenv("CUSTOM_API_URL", "")
+                return CustomProvider(api_key=api_key or "", base_url=base_url)
+
+            ModelProviderRegistry.register_provider(ProviderType.CUSTOM, custom_provider_factory)

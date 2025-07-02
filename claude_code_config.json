@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "xtool_mcp_server": {
+      "command": "docker",
+      "args": [
+        "exec",
+        "-i",
+        "zen-mcp-production",
+        "python",
+        "server.py"
+      ],
+      "env": {
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

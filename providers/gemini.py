@@ -172,7 +172,51 @@ class GeminiModelProvider(ModelProvider):
         else:
             full_prompt = prompt
 
-        parts.append({"text": full_prompt})
+        # Workaround for Gemini API ASCII encoding issue with Chinese characters
+        # The Google GenAI SDK has a bug where it tries to encode Unicode as ASCII
+        try:
+            # Test if this text will cause the ASCII encoding error
+            full_prompt.encode("ascii")
+            # If no error, safe to use original text
+            parts.append({"text": full_prompt})
+        except UnicodeEncodeError:
+            # Contains Unicode characters that cause the SDK error
+            # For now, replace all non-ASCII characters to avoid the bug
+            import re
+
+            # Replace Chinese characters with English descriptions
+            chinese_replacements = {
+                "自举": "self-bootstrap",
+                "计划": "plan",
+                "已经": "already",
+                "开始": "started",
+                "核心": "core",
+                "记忆": "memory",
+                "系统": "system",
+                "实现": "implemented",
+                "思维": "thinking",
+                "模式": "pattern",
+                "完成": "completed",
+                "驱动": "driven",
+                "开发": "development",
+                "技术": "technical",
+                "细节": "details",
+                "分析": "analysis",
+                "准备": "preparation",
+            }
+
+            safe_prompt = full_prompt
+            for chinese, english in chinese_replacements.items():
+                safe_prompt = safe_prompt.replace(chinese, english)
+
+            # Remove any remaining non-ASCII characters
+            safe_prompt = re.sub(r"[^\x00-\x7f]", "", safe_prompt)
+
+            # Clean up extra spaces
+            safe_prompt = re.sub(r"\s+", " ", safe_prompt).strip()
+
+            parts.append({"text": safe_prompt})
+            logger.info("Converted Chinese characters to English for Gemini API compatibility")
 
         # Add images if provided and model supports vision
         if images and self._supports_vision(resolved_name):

@@ -17,10 +17,12 @@ from typing import Any, Optional
 
 from tools.shared.base_models import ToolRequest
 from tools.shared.base_tool import BaseTool
+from tools.shared.document_chunk_mixin import DocumentChunkMixin
+from tools.shared.memory_save_mixin import MemorySaveMixin
 from tools.shared.schema_builders import SchemaBuilder
 
 
-class SimpleTool(BaseTool):
+class SimpleTool(BaseTool, MemorySaveMixin, DocumentChunkMixin):
     """
     Base class for simple (non-workflow) tools.
 
@@ -88,6 +90,21 @@ class SimpleTool(BaseTool):
         """
         pass
 
+    def requires_ai_model(self, request) -> bool:
+        """
+        Determine if this request requires an AI model.
+
+        Override this method to return False for operations that don't need AI.
+        For example, memory save operations can return False to skip AI calls.
+
+        Args:
+            request: The validated request object
+
+        Returns:
+            bool: True if AI model is needed (default), False to skip AI
+        """
+        return True
+
     def get_required_fields(self) -> list[str]:
         """
         Return list of required field names.
@@ -122,13 +139,16 @@ class SimpleTool(BaseTool):
         This is a hook method that subclasses can override to customize
         response formatting. The default implementation returns the response as-is.
 
+        Tools can also use wrap_response_with_chunking() here to automatically
+        handle document chunking for large responses.
+
         Args:
             response: The raw response from the AI model
             request: The validated request object
             model_info: Optional model information dictionary
 
         Returns:
-            Formatted response string
+            Formatted response string (or ToolOutput if chunking is needed)
         """
         return response
 
@@ -285,6 +305,23 @@ class SimpleTool(BaseTool):
         logger = logging.getLogger(f"tools.{self.get_name()}")
 
         try:
+            # Check if this is a chunk continuation request
+            # 支持两种方式：直接的 _continuation_state 或从 metadata 中提取
+            continuation_state = None
+
+            if "_continuation_state" in arguments:
+                continuation_state = arguments["_continuation_state"]
+            elif "_chunk_continuation" in arguments:
+                # 从之前的响应 metadata 中提取
+                continuation_state = arguments["_chunk_continuation"]
+
+            if continuation_state and continuation_state.get("action") == "continue_chunks":
+                # Handle chunk continuation
+                result = self.handle_chunk_continuation(continuation_state)
+                if isinstance(result, ToolOutput):
+                    return [TextContent(type="text", text=result.model_dump_json())]
+                return result
+
             # Store arguments for access by helper methods
             self._current_arguments = arguments
 
@@ -387,9 +424,36 @@ class SimpleTool(BaseTool):
 
                 follow_up_instructions = get_follow_up_instructions(0)
                 prompt = f"{prompt}\n\n{follow_up_instructions}"
-                logger.debug(
-                    f"Added follow-up instructions for new {self.get_name()} conversation"
-                )  # Validate images if any were provided
+                logger.debug(f"Added follow-up instructions for new {self.get_name()} conversation")
+
+            # Check if this operation requires AI model
+            if not self.requires_ai_model(request):
+                logger.info(f"{self.get_name()}: Skipping AI model call for this operation")
+
+                # Format the prompt as the final response
+                formatted_response = self.format_response(prompt, request)
+
+                # Create success output without AI call
+                output = ToolOutput(
+                    status="success",
+                    content=formatted_response,
+                    content_type="text",
+                )
+
+                # Log to activity log without model info
+                activity_logger = logging.getLogger("activity")
+                activity_logger.info(
+                    f"{self.get_name()}: Direct response (no AI model used)",
+                    extra={
+                        "tool": self.get_name(),
+                        "model": "none",
+                        "direct_response": True,
+                    },
+                )
+
+                return [TextContent(type="text", text=output.model_dump_json())]
+
+            # Validate images if any were provided
             if images:
                 image_validation_error = self._validate_image_limits(
                     images, model_context=self._model_context, continuation_id=continuation_id
@@ -495,6 +559,15 @@ class SimpleTool(BaseTool):
         # Format the response using the hook method
         formatted_response = self.format_response(raw_text, request, model_info)
 
+        # Check if response needs chunking
+        if isinstance(formatted_response, str) and self.should_chunk_response(formatted_response):
+            # Return chunked response directly - it's already a ToolOutput
+            return self.create_chunked_response(formatted_response, request, model_info)
+
+        # If format_response returned a ToolOutput (e.g., from chunking), return it directly
+        if hasattr(formatted_response, "status") and hasattr(formatted_response, "content"):
+            return formatted_response
+
         # Handle conversation continuation like old base.py
         continuation_id = self.get_request_continuation_id(request)
         if continuation_id:
@@ -559,6 +632,15 @@ class SimpleTool(BaseTool):
                         except AttributeError:
                             # Fallback if provider doesn't have get_provider_type method
                             metadata["provider_used"] = str(provider)
+
+            # 尝试自动保存交互记忆
+            try:
+                memory_key = self.save_interaction_memory(request, formatted_response)
+                if memory_key:
+                    metadata["memory_saved"] = memory_key
+            except Exception as e:
+                # 保存记忆失败不应该影响工具执行
+                logger.debug(f"自动保存记忆时出错: {e}")
 
             return ToolOutput(
                 status="success",

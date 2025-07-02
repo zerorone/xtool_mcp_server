@@ -178,7 +178,7 @@ Add this to your `claude_desktop_config.json`:
       "command": "sh",
       "args": [
         "-c",
-        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
+        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/xtool_mcp_server.git xtool_mcp_server"
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -201,7 +201,7 @@ Create a `.mcp.json` file in your project root for [project-scoped configuration
       "command": "sh",
       "args": [
         "-c",
-        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
+        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/xtool_mcp_server.git xtool_mcp_server"
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -224,7 +224,7 @@ Edit `~/.gemini/settings.json` and add:
       "command": "sh",
       "args": [
         "-c",
-        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
+        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/xtool_mcp_server.git xtool_mcp_server"
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -249,8 +249,8 @@ Edit `~/.gemini/settings.json` and add:
 
 ```bash
 # Clone to your preferred location
-git clone https://github.com/BeehiveInnovations/zen-mcp-server.git
-cd zen-mcp-server
+git clone https://github.com/BeehiveInnovations/xtool_mcp_server.git
+cd xtool_mcp_server
 
 # One-command setup installs Zen in Claude
 ./run-server.sh
@@ -709,4 +709,4 @@ Built with the power of **Multi-Model AI** collaboration 🤝
 
 ### Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=BeehiveInnovations/zen-mcp-server&type=Date)](https://www.star-history.com/#BeehiveInnovations/zen-mcp-server&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=BeehiveInnovations/xtool_mcp_server&type=Date)](https://www.star-history.com/#BeehiveInnovations/xtool_mcp_server&Date)

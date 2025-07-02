@@ -30,6 +30,10 @@ from mcp.types import TextContent
 
 from config import MCP_PROMPT_SIZE_LIMIT
 from utils.conversation_memory import add_turn, create_thread
+from utils.workflow_memory_fix import (
+    create_sliding_findings_buffer,
+    get_workflow_manager,
+)
 
 from ..shared.base_models import ConsolidatedFindings
 
@@ -299,7 +303,7 @@ class BaseWorkflowMixin(ABC):
             f"MANDATORY: DO NOT call the {self.get_name()} tool again immediately. "
             f"You MUST first work using appropriate tools. "
             f"REQUIRED ACTIONS before calling {self.get_name()} step {next_step_number}:\n"
-            + "\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+            + "\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
             + f"\n\nOnly call {self.get_name()} again with step_number: {next_step_number} "
             f"AFTER completing this work."
         )
@@ -597,6 +601,12 @@ class BaseWorkflowMixin(ABC):
 
     async def execute_workflow(self, arguments: dict[str, Any]) -> list[TextContent]:
         """
+        # P0 修复：检查步骤数限制
+        step_number = request.step_number if hasattr(request, 'step_number') else 1
+        if step_number > WorkflowLimits.MAX_WORKFLOW_STEPS:
+            error_msg = f"工作流步骤数超出限制 ({step_number} > {WorkflowLimits.MAX_WORKFLOW_STEPS})"
+            logger.error(error_msg)
+            return [TextContent(type="text", text=f"错误: {error_msg}")]
         Main workflow orchestration following debug tool pattern.
 
         Comprehensive workflow implementation that handles all common patterns:
@@ -1371,6 +1381,10 @@ class BaseWorkflowMixin(ABC):
     def _reprocess_consolidated_findings(self):
         """Reprocess consolidated findings after backtracking"""
         self.consolidated_findings = ConsolidatedFindings()
+        # P0 修复：添加内存管理和线程安全
+        self._workflow_manager = get_workflow_manager()
+        self._findings_buffer = create_sliding_findings_buffer()
+        self._memory_monitor = self._workflow_manager.resource_monitor
         for step in self.work_history:
             self._update_consolidated_findings(step)
 
@@ -1584,3 +1598,17 @@ class BaseWorkflowMixin(ABC):
         The BaseWorkflowMixin formats responses internally.
         """
         return response
+
+    def cleanup_workflow_resources(self) -> None:
+        """P0 修复：清理工作流资源"""
+        try:
+            if hasattr(self, "_findings_buffer"):
+                self._findings_buffer.clear()
+
+            if hasattr(self, "continuation_id") and self.continuation_id:
+                # 标记工作流完成，触发资源清理
+                asyncio.create_task(self._workflow_manager.finish_workflow(self.continuation_id))
+
+            logger.debug(f"工作流资源已清理: {self.get_name()}")
+        except Exception as e:
+            logger.warning(f"清理工作流资源时出错: {e}")

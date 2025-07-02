@@ -4,8 +4,8 @@
   "comment3": "For platform-specific examples, see the examples/ directory",
   "mcpServers": {
     "zen": {
-      "command": "/path/to/zen-mcp-server/.zen_venv/bin/python",
-      "args": ["/path/to/zen-mcp-server/server.py"]
+      "command": "/path/to/xtool_mcp_server/.zen_venv/bin/python",
+      "args": ["/path/to/xtool_mcp_server/server.py"]
     }
   }
 }

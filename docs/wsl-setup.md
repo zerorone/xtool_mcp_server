@@ -27,8 +27,8 @@ npm install -g @anthropic-ai/claude-code
    cd ~
    
    # Clone the repository
-   git clone https://github.com/BeehiveInnovations/zen-mcp-server.git
-   cd zen-mcp-server
+   git clone https://github.com/BeehiveInnovations/xtool_mcp_server.git
+   cd xtool_mcp_server
    ```
 
 2. **Run the setup script**:
@@ -61,7 +61,7 @@ python3 -m pip install --upgrade pip
 
 ### Path Issues
 
-- Always use the full WSL path for MCP configuration (e.g., `/home/YourName/zen-mcp-server/`)
+- Always use the full WSL path for MCP configuration (e.g., `/home/YourName/xtool_mcp_server/`)
 - The setup script automatically detects WSL and configures the correct paths
 
 ### Claude Code Connection Issues
@@ -71,9 +71,9 @@ python3 -m pip install --upgrade pip
 cat ~/.claude.json | grep -A 10 "zen"
 
 # The configuration should show the correct WSL path to the Python executable
-# Example: "/home/YourName/zen-mcp-server/.zen_venv/bin/python"
+# Example: "/home/YourName/xtool_mcp_server/.zen_venv/bin/python"
 ```
 
 ### Performance Tip
 
-For best performance, keep your zen-mcp-server directory in the WSL filesystem (e.g., `~/zen-mcp-server`) rather than in the Windows filesystem (`/mnt/c/...`).
+For best performance, keep your xtool_mcp_server directory in the WSL filesystem (e.g., `~/xtool_mcp_server`) rather than in the Windows filesystem (`/mnt/c/...`).

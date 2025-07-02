@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 from config import TEMPERATURE_ANALYTICAL
 from systemprompts import DEBUG_ISSUE_PROMPT
 from tools.shared.base_models import WorkflowRequest
+from tools.shared.thinking_pattern_mixin import ThinkingPatternMixin
 
 from .workflow.base import WorkflowTool
 
@@ -146,7 +147,7 @@ class DebugInvestigationRequest(WorkflowRequest):
     use_websearch: Optional[bool] = Field(default=None, exclude=True)
 
 
-class DebugIssueTool(WorkflowTool):
+class DebugIssueTool(WorkflowTool, ThinkingPatternMixin):
     """
     Debug tool for systematic root cause analysis and issue investigation.
 
@@ -185,7 +186,29 @@ class DebugIssueTool(WorkflowTool):
         )
 
     def get_system_prompt(self) -> str:
-        return DEBUG_ISSUE_PROMPT
+        base_prompt = DEBUG_ISSUE_PROMPT
+
+        # Apply thinking patterns if they haven't been selected yet
+        if not hasattr(self, "applied_patterns") or not self.applied_patterns:
+            # Select patterns based on debugging context
+            context = "systematic debugging and root cause analysis"
+            self.select_thinking_patterns(context, problem_type="debugging")
+
+        # Enhance prompt with thinking patterns
+        if hasattr(self, "applied_patterns") and self.applied_patterns:
+            return self.apply_thinking_patterns(base_prompt, "debugging workflow")
+
+        return base_prompt
+
+    def get_default_thinking_patterns(self) -> list[str]:
+        """Define optimal thinking patterns for debugging tasks."""
+        return [
+            "Root Cause Analysis",  # For systematic problem investigation
+            "Pattern Recognition",  # For identifying error patterns
+            "Hypothesis Testing",  # For validating assumptions
+            "Systematic Investigation",  # For methodical exploration
+            "Critical Thinking",  # For questioning assumptions
+        ]
 
     def get_default_temperature(self) -> float:
         return TEMPERATURE_ANALYTICAL
@@ -439,14 +462,14 @@ class DebugIssueTool(WorkflowTool):
             next_steps = (
                 f"STOP! Do NOT call {self.get_name()} again yet. Based on your findings, you've identified potential areas "
                 f"but need concrete evidence. MANDATORY ACTIONS before calling {self.get_name()} step {step_number + 1}:\n"
-                + "\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+                + "\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
                 + f"\n\nOnly call {self.get_name()} again with step_number: {step_number + 1} AFTER "
                 + "completing these investigations."
             )
         elif confidence in ["medium", "high", "very_high"]:
             next_steps = (
                 f"WAIT! Your hypothesis needs verification. DO NOT call {self.get_name()} immediately. REQUIRED ACTIONS:\n"
-                + "\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+                + "\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
                 + f"\n\nREMEMBER: If you cannot find concrete evidence of a bug causing the reported symptoms, "
                 f"'no bug found' is a valid conclusion. Consider suggesting discussion with your thought partner "
                 f"or engineering assistant for clarification. Document findings with specific file:line references, "
@@ -455,7 +478,7 @@ class DebugIssueTool(WorkflowTool):
         elif confidence == "almost_certain":
             next_steps = (
                 "ALMOST CERTAIN - Prepare for final analysis. REQUIRED ACTIONS:\n"
-                + "\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
+                + "\n".join(f"{i + 1}. {action}" for i, action in enumerate(required_actions))
                 + "\n\nIMPORTANT: You're almost certain about the root cause. If you have NOT found the bug with "
                 "100% certainty, consider setting next_step_required=false to invoke expert analysis. The expert "
                 "can validate your hypotheses and provide additional insights. If you ARE 100% certain and have "

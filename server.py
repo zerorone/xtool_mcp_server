@@ -71,16 +71,24 @@ from tools import (  # noqa: E402
     DebugIssueTool,
     DocgenTool,
     ListModelsTool,
+    MemoryManagerTool,
+    MemoryRecallTool,
     PlannerTool,
     PrecommitTool,
     RefactorTool,
     SecauditTool,
     TestGenTool,
+    ThinkBoostTool,
     ThinkDeepTool,
     TracerTool,
     VersionTool,
+    ZenAdvisorTool,
 )
 from tools.models import ToolOutput  # noqa: E402
+
+# Import monitoring tools directly
+# from tools.workflow_monitor import WorkflowMonitorTool  # noqa: E402
+# from tools.file_optimization_monitor import FileOptimizationMonitorTool  # noqa: E402
 
 # Configure logging for server operations
 # Can be controlled via LOG_LEVEL environment variable (DEBUG, INFO, WARNING, ERROR)
@@ -276,8 +284,15 @@ TOOLS = {
     "tracer": TracerTool(),  # Static call path prediction and control flow analysis
     "testgen": TestGenTool(),  # Step-by-step test generation workflow with expert validation
     "challenge": ChallengeTool(),  # Critical challenge prompt wrapper to avoid automatic agreement
+    "memory": MemoryManagerTool(),  # Intelligent memory management with three-layer system
+    "recall": MemoryRecallTool(),  # Token-aware memory recall with structured order
+    "thinkboost": ThinkBoostTool(),  # Enhanced thinking patterns for Claude Code
+    "zen_advisor": ZenAdvisorTool(),  # Intelligent tool recommendation system with thinking modes
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
+    # Monitoring and optimization tools
+    # "workflow_monitor": WorkflowMonitorTool(),  # Workflow system monitoring and management
+    # "file_optimization_monitor": FileOptimizationMonitorTool(),  # File processing optimization monitoring
 }
 TOOLS = filter_disabled_tools(TOOLS)
 
@@ -352,6 +367,26 @@ PROMPT_TEMPLATES = {
         "name": "challenge",
         "description": "Challenge a statement critically without automatic agreement",
         "template": "Challenge this statement critically",
+    },
+    "memory": {
+        "name": "memory",
+        "description": "Manage intelligent memory system",
+        "template": "Manage memories with {model}",
+    },
+    "recall": {
+        "name": "recall",
+        "description": "Token-aware memory recall with structured order",
+        "template": "Recall memories with {model}",
+    },
+    "thinkboost": {
+        "name": "thinkboost",
+        "description": "Enhanced thinking patterns for Claude Code",
+        "template": "Boost thinking patterns for this task",
+    },
+    "zen_advisor": {
+        "name": "zen_advisor",
+        "description": "Intelligent tool recommendation with thinking modes",
+        "template": "Analyze query and recommend appropriate Zen tools with {model}",
     },
     "listmodels": {
         "name": "listmodels",
@@ -1318,7 +1353,7 @@ async def main():
 
 
 def run():
-    """Console script entry point for zen-mcp-server."""
+    """Console script entry point for xtool_mcp_server."""
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

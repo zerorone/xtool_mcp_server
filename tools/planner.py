@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 from config import TEMPERATURE_BALANCED
 from systemprompts import PLANNER_PROMPT
 from tools.shared.base_models import WorkflowRequest
+from tools.shared.thinking_pattern_mixin import ThinkingPatternMixin
 
 from .workflow.base import WorkflowTool
 
@@ -110,7 +111,7 @@ class PlannerRequest(WorkflowRequest):
         return v
 
 
-class PlannerTool(WorkflowTool):
+class PlannerTool(WorkflowTool, ThinkingPatternMixin):
     """
     Planner workflow tool for step-by-step planning using the workflow architecture.
 
@@ -157,7 +158,29 @@ class PlannerTool(WorkflowTool):
         )
 
     def get_system_prompt(self) -> str:
-        return PLANNER_PROMPT
+        base_prompt = PLANNER_PROMPT
+
+        # Apply thinking patterns if they haven't been selected yet
+        if not hasattr(self, "applied_patterns") or not self.applied_patterns:
+            # Select patterns based on planning context
+            context = "strategic planning and task decomposition"
+            self.select_thinking_patterns(context, problem_type="planning")
+
+        # Enhance prompt with thinking patterns
+        if hasattr(self, "applied_patterns") and self.applied_patterns:
+            return self.apply_thinking_patterns(base_prompt, "planning workflow")
+
+        return base_prompt
+
+    def get_default_thinking_patterns(self) -> list[str]:
+        """Define optimal thinking patterns for planning tasks."""
+        return [
+            "Systems Thinking",  # For understanding interconnections and dependencies
+            "Strategic Planning",  # For long-term vision and goal setting
+            "Decomposition Analysis",  # For breaking down complex problems
+            "Risk Assessment",  # For identifying potential issues
+            "Sequential Logic",  # For logical step ordering
+        ]
 
     def get_default_temperature(self) -> float:
         return TEMPERATURE_BALANCED

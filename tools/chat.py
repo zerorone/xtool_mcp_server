@@ -189,6 +189,26 @@ class ChatTool(SimpleTool):
 
     # === Hook Method Implementations ===
 
+    def should_save_memory(self, request: Any, response: str) -> bool:
+        """
+        Chat 工具总是保存交互记忆，除非响应太短。
+        """
+        return len(response) > 100  # 只要响应超过100字符就保存
+
+    def get_memory_metadata(self, request: Any, response: str) -> dict[str, Any]:
+        """
+        为 Chat 工具添加特定的元数据。
+        """
+        metadata = super().get_memory_metadata(request, response)
+        metadata["type"] = "chat_conversation"
+        metadata["tags"].append("collaboration")
+
+        # 根据内容长度调整重要性
+        if len(response) > 1000:
+            metadata["importance"] = "high"
+
+        return metadata
+
     async def prepare_prompt(self, request: ChatRequest) -> str:
         """
         Prepare the chat prompt with optional context files.
