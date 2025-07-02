@@ -9,11 +9,12 @@
 - 记忆重要性动态调整
 """
 
+import json
 import logging
 import math
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .conversation_memory import _load_memory_layer, _save_memory_layer
 from .intelligent_memory_retrieval import (
@@ -69,7 +70,7 @@ class MemoryLifecycleManager:
         self.archive_threshold = float(os.getenv("MEMORY_ARCHIVE_THRESHOLD", "0.2"))
         self.resurrection_boost = float(os.getenv("MEMORY_RESURRECTION_BOOST", "0.3"))
 
-    def calculate_advanced_quality(self, memory: Dict[str, Any]) -> float:
+    def calculate_advanced_quality(self, memory: dict[str, Any]) -> float:
         """
         计算高级质量分数
 
@@ -113,7 +114,7 @@ class MemoryLifecycleManager:
 
         return min(1.0, max(0.0, total_score))
 
-    def apply_decay(self, memory: Dict[str, Any], current_time: Optional[datetime] = None) -> float:
+    def apply_decay(self, memory: dict[str, Any], current_time: Optional[datetime] = None) -> float:
         """
         应用衰减算法
 
@@ -160,7 +161,7 @@ class MemoryLifecycleManager:
 
         return min(1.0, decay_value * type_weight)
 
-    def evaluate_memory_value(self, memory: Dict[str, Any]) -> Dict[str, float]:
+    def evaluate_memory_value(self, memory: dict[str, Any]) -> dict[str, float]:
         """
         评估记忆的综合价值
 
@@ -196,7 +197,7 @@ class MemoryLifecycleManager:
             "should_delete": overall_value < MEMORY_QUALITY_THRESHOLD * 0.5,
         }
 
-    def resurrect_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+    def resurrect_memory(self, memory: dict[str, Any]) -> dict[str, Any]:
         """
         复活记忆机制
 
@@ -229,7 +230,7 @@ class MemoryLifecycleManager:
         memory["metadata"] = metadata
         return memory
 
-    def batch_evaluate_memories(self, layer: str = None) -> Dict[str, List[Dict[str, Any]]]:
+    def batch_evaluate_memories(self, layer: str = None) -> dict[str, list[dict[str, Any]]]:
         """
         批量评估记忆
 
@@ -263,7 +264,7 @@ class MemoryLifecycleManager:
 
         return results
 
-    def optimize_memory_storage(self, dry_run: bool = True) -> Dict[str, int]:
+    def optimize_memory_storage(self, dry_run: bool = True) -> dict[str, int]:
         """
         优化记忆存储
 
@@ -327,7 +328,7 @@ class MemoryLifecycleManager:
 
         return length_score * 0.4 + structure_score * 0.3 + unique_ratio * 0.3
 
-    def _evaluate_structure(self, memory: Dict[str, Any]) -> float:
+    def _evaluate_structure(self, memory: dict[str, Any]) -> float:
         """评估结构化程度"""
         metadata = memory.get("metadata", {})
 
@@ -342,7 +343,7 @@ class MemoryLifecycleManager:
 
         return field_score * 0.6 + tag_score * 0.4
 
-    def _evaluate_relevance(self, memory: Dict[str, Any]) -> float:
+    def _evaluate_relevance(self, memory: dict[str, Any]) -> float:
         """评估关联性"""
         metadata = memory.get("metadata", {})
 
@@ -356,7 +357,7 @@ class MemoryLifecycleManager:
 
         return ref_score * 0.7 + related_score * 0.3
 
-    def _evaluate_usage(self, metadata: Dict[str, Any]) -> float:
+    def _evaluate_usage(self, metadata: dict[str, Any]) -> float:
         """评估使用频率"""
         access_count = metadata.get("access_count", 0)
 
@@ -380,7 +381,7 @@ class MemoryLifecycleManager:
 
         return usage_score * 0.6 + recency_score * 0.4
 
-    def _evaluate_feedback(self, metadata: Dict[str, Any]) -> float:
+    def _evaluate_feedback(self, metadata: dict[str, Any]) -> float:
         """评估用户反馈"""
         # 用户评分（如果有）
         user_rating = metadata.get("user_rating", 0)
@@ -395,7 +396,7 @@ class MemoryLifecycleManager:
 
         return 0.5  # 默认中性
 
-    def _calculate_historical_value(self, memory: Dict[str, Any]) -> float:
+    def _calculate_historical_value(self, memory: dict[str, Any]) -> float:
         """计算历史价值"""
         try:
             timestamp = memory.get("timestamp", "")
@@ -410,7 +411,7 @@ class MemoryLifecycleManager:
         except Exception:
             return 0.0
 
-    def _calculate_uniqueness(self, memory: Dict[str, Any]) -> float:
+    def _calculate_uniqueness(self, memory: dict[str, Any]) -> float:
         """计算独特性价值"""
         metadata = memory.get("metadata", {})
 
@@ -476,7 +477,7 @@ def get_lifecycle_manager() -> MemoryLifecycleManager:
     return _lifecycle_manager
 
 
-def evaluate_memory_health() -> Dict[str, Any]:
+def evaluate_memory_health() -> dict[str, Any]:
     """
     评估整体记忆系统健康状况
 
@@ -523,12 +524,12 @@ def evaluate_memory_health() -> Dict[str, Any]:
 
 
 def export_memories(
-    layers: Optional[List[str]] = None,
+    layers: Optional[list[str]] = None,
     export_format: str = "json",
     include_metadata: bool = True,
     include_statistics: bool = True,
     output_file: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     导出记忆数据
 
@@ -698,10 +699,10 @@ def export_memories(
 
 def import_memories(
     import_file: str,
-    target_layers: Optional[Dict[str, str]] = None,
+    target_layers: Optional[dict[str, str]] = None,
     merge_strategy: str = "skip_duplicates",
     validate_data: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     导入记忆数据
 
@@ -855,8 +856,8 @@ def import_memories(
 
 
 def migrate_memories(
-    source_project: str, target_project: str, memory_types: Optional[List[str]] = None, preserve_timestamps: bool = True
-) -> Dict[str, Any]:
+    source_project: str, target_project: str, memory_types: Optional[list[str]] = None, preserve_timestamps: bool = True
+) -> dict[str, Any]:
     """
     跨项目记忆迁移
 

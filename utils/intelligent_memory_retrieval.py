@@ -192,6 +192,10 @@ class MemoryIndex:
         """Search memories by quality score range."""
         result = set()
 
+        # 处理 None 值，使用默认值
+        min_score = min_score if min_score is not None else 0.0
+        max_score = max_score if max_score is not None else 1.0
+
         # Iterate through quality buckets
         for score_bucket in range(int(min_score * 10), int(max_score * 10) + 1):
             score = score_bucket / 10.0
@@ -557,7 +561,8 @@ def intelligent_recall_memory(
             # Text search if query provided
             if query:
                 content_str = str(memory.get("content", ""))
-                if query.lower() not in content_str.lower():
+                query_str = str(query) if query is not None else ""
+                if query_str and query_str.lower() not in content_str.lower():
                     continue
 
             # Calculate relevance score
@@ -600,7 +605,8 @@ def calculate_relevance_score(
     # Query match scoring
     if query:
         content_str = str(memory.get("content", "")).lower()
-        query_lower = query.lower()
+        query_str = str(query) if query is not None else ""
+        query_lower = query_str.lower()
 
         # Exact match bonus
         if query_lower in content_str:
@@ -789,7 +795,7 @@ def token_aware_memory_recall(
     result["recall_summary"]["by_type"] = {
         "count": len(type_memories),
         "tokens": type_tokens,
-        "types_found": list(set(m.get("metadata", {}).get("type", "general") for m in type_memories)),
+        "types_found": list({m.get("metadata", {}).get("type", "general") for m in type_memories}),
     }
 
     result["memories"].extend(type_memories)
@@ -810,7 +816,7 @@ def token_aware_memory_recall(
             match_mode,
             remaining_tokens,
             include_metadata,
-            exclude_keys=set(m["key"] for m in type_memories),
+            exclude_keys={m["key"] for m in type_memories},
         )
 
         result["recall_summary"]["by_index"] = {
@@ -828,7 +834,7 @@ def token_aware_memory_recall(
         remaining_tokens = token_limit - current_tokens
 
         file_memories, file_tokens = _recall_specified_files(
-            specified_files, remaining_tokens, include_metadata, exclude_keys=set(m["key"] for m in result["memories"])
+            specified_files, remaining_tokens, include_metadata, exclude_keys={m["key"] for m in result["memories"]}
         )
 
         result["recall_summary"]["specified_files"] = {
@@ -1066,7 +1072,7 @@ def _get_index_categories_used(memories: list[dict[str, Any]]) -> list[str]:
         if mem_type:
             categories.add(mem_type)
 
-    return sorted(list(categories))
+    return sorted(categories)
 
 
 def get_memory_stats_with_tokens() -> dict[str, Any]:
@@ -1090,7 +1096,7 @@ def get_memory_stats_with_tokens() -> dict[str, Any]:
         layer_tokens = 0
         layer_count = 0
 
-        for key, memory in layer_data.items():
+        for _key, memory in layer_data.items():
             content = str(memory.get("content", ""))
             memory_tokens = estimate_tokens(content)
             layer_tokens += memory_tokens

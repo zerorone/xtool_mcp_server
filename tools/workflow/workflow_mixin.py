@@ -1,5 +1,5 @@
 """
-Workflow Mixin for Zen MCP Tools
+Workflow Mixin for xtool MCP Tools
 
 This module provides a sophisticated workflow-based pattern that enables tools to
 perform multi-step work with structured findings and expert analysis.
@@ -20,6 +20,7 @@ Features:
 - Comprehensive type annotations for IDE support
 """
 
+import asyncio
 import json
 import logging
 import os

@@ -111,7 +111,7 @@ class MemoryRecallTool(SimpleTool):
 
 **结构化回忆顺序：**
 1. **类型回忆** - 按重要性排序的记忆类型
-2. **索引回忆** - 使用多维度索引检索  
+2. **索引回忆** - 使用多维度索引检索
 3. **指定文件回忆** - 查看特定文件相关记忆
 
 **三层架构：**
@@ -155,7 +155,7 @@ class MemoryRecallTool(SimpleTool):
 
 **回忆参数：**
 - 查询: {query or "无"}
-- 标签: {tags or "无"}  
+- 标签: {tags or "无"}
 - 类型: {mem_type or "所有"}
 - 层级: {layer or "所有"}
 - 时间范围: {f"{days_back}天前" if days_back else "无限制"}
@@ -264,28 +264,28 @@ class MemoryRecallTool(SimpleTool):
         lines.append("")
 
         # 1. 按类型回忆
-        type_summary = summary["by_type"]
+        type_summary = summary.get("by_type", {})
         lines.append("### 1️⃣ 按类型回忆")
-        lines.append(f"- 找到记忆: {type_summary['count']} 条")
-        lines.append(f"- 使用 tokens: {type_summary['tokens']}")
-        if type_summary["types_found"]:
+        lines.append(f"- 找到记忆: {type_summary.get('count', 0)} 条")
+        lines.append(f"- 使用 tokens: {type_summary.get('tokens', 0)}")
+        if type_summary.get("types_found"):
             lines.append(f"- 发现类型: {', '.join(type_summary['types_found'])}")
         lines.append("")
 
         # 2. 按索引回忆
-        index_summary = summary["by_index"]
+        index_summary = summary.get("by_index", {})
         lines.append("### 2️⃣ 按索引回忆")
-        lines.append(f"- 找到记忆: {index_summary['count']} 条")
-        lines.append(f"- 使用 tokens: {index_summary['tokens']}")
+        lines.append(f"- 找到记忆: {index_summary.get('count', 0)} 条")
+        lines.append(f"- 使用 tokens: {index_summary.get('tokens', 0)}")
         if index_summary.get("index_categories"):
             lines.append(f"- 索引分类: {', '.join(index_summary['index_categories'])}")
         lines.append("")
 
         # 3. 指定文件回忆
-        files_summary = summary["specified_files"]
+        files_summary = summary.get("specified_files", {})
         lines.append("### 3️⃣ 指定文件回忆")
-        lines.append(f"- 找到记忆: {files_summary['count']} 条")
-        lines.append(f"- 使用 tokens: {files_summary['tokens']}")
+        lines.append(f"- 找到记忆: {files_summary.get('count', 0)} 条")
+        lines.append(f"- 使用 tokens: {files_summary.get('tokens', 0)}")
         if files_summary.get("files_processed"):
             lines.append(f"- 处理文件: {len(files_summary['files_processed'])} 个")
             lines.append(f"- 找到文件: {len(files_summary.get('files_found', []))} 个")

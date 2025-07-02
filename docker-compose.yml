@@ -1,5 +1,5 @@
 services:
-  zen-mcp:
+  xtool-mcp:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,10 +9,10 @@ services:
     
     # Container labels for traceability
     labels:
-      - "com.zen-mcp.service=xtool_mcp_server"
-      - "com.zen-mcp.version=1.0.0"
-      - "com.zen-mcp.environment=production"
-      - "com.zen-mcp.description=AI-powered Model Context Protocol server"
+      - "com.xtool-mcp.service=xtool_mcp_server"
+      - "com.xtool-mcp.version=1.0.0"
+      - "com.xtool-mcp.environment=production"
+      - "com.xtool-mcp.description=AI-powered Model Context Protocol server"
     
     # Environment variables
     environment:
@@ -51,12 +51,13 @@ services:
     # Volumes for persistent data
     volumes:
       - ./logs:/app/logs
-      - zen-mcp-config:/app/conf
+      - xtool-mcp-config:/app/conf
+      - xtool-memory:/app/.xtool_memory
       - /etc/localtime:/etc/localtime:ro
     
     # Network configuration
     networks:
-      - zen-network
+      - xtool-network
     
     # Resource limits
     deploy:
@@ -89,12 +90,14 @@ services:
 
 # Named volumes
 volumes:
-  zen-mcp-config:
+  xtool-mcp-config:
+    driver: local
+  xtool-memory:
     driver: local
 
 # Networks
 networks:
-  zen-network:
+  xtool-network:
     driver: bridge
     ipam:
       config:

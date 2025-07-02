@@ -12,6 +12,7 @@ and inherit all the conversation, file processing, and model handling
 capabilities from BaseTool.
 """
 
+import logging
 from abc import abstractmethod
 from typing import Any, Optional
 
@@ -20,6 +21,8 @@ from tools.shared.base_tool import BaseTool
 from tools.shared.document_chunk_mixin import DocumentChunkMixin
 from tools.shared.memory_save_mixin import MemorySaveMixin
 from tools.shared.schema_builders import SchemaBuilder
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleTool(BaseTool, MemorySaveMixin, DocumentChunkMixin):
