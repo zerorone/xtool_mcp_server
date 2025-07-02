@@ -1,0 +1,112 @@
+# ===========================================
+# 开发环境 Docker Compose 配置
+# Development Environment Docker Compose
+# ===========================================
+
+services:
+  xtool-mcp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.lightweight
+    image: xtool-mcp-server:dev
+    container_name: xtool_mcp_server_dev
+    
+    # Container labels for traceability
+    labels:
+      - "com.xtool-mcp.service=xtool_mcp_server"
+      - "com.xtool-mcp.version=1.0.0"
+      - "com.xtool-mcp.environment=development"
+      - "com.xtool-mcp.description=AI-powered Model Context Protocol server (Development)"
+    
+    # Environment variables for development
+    environment:
+      # Default model configuration
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-auto}
+      
+      # API Keys from environment
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      - DIAL_API_KEY=${DIAL_API_KEY}
+      - DIAL_API_HOST=${DIAL_API_HOST}
+      - DIAL_API_VERSION=${DIAL_API_VERSION}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - CUSTOM_API_URL=${CUSTOM_API_URL}
+      - CUSTOM_API_KEY=${CUSTOM_API_KEY}
+      - CUSTOM_MODEL_NAME=${CUSTOM_MODEL_NAME}
+      
+      # Development-specific logging
+      - LOG_LEVEL=DEBUG
+      - LOG_MAX_SIZE=5MB
+      - LOG_BACKUP_COUNT=3
+      
+      # Development configuration
+      - DEFAULT_THINKING_MODE_THINKDEEP=high
+      - DISABLED_TOOLS=${DISABLED_TOOLS}
+      - MAX_MCP_OUTPUT_TOKENS=${MAX_MCP_OUTPUT_TOKENS}
+      
+      # Server configuration
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - TZ=${TZ:-UTC}
+    
+    # Development volumes - mount source code for live editing
+    volumes:
+      - .:/app:ro  # 只读挂载源代码
+      - ./logs:/app/logs  # 读写挂载日志
+      - xtool-mcp-config-dev:/app/conf
+      - xtool-memory-dev:/app/.xtool_memory
+      - /etc/localtime:/etc/localtime:ro
+    
+    # Network configuration
+    networks:
+      - xtool-network-dev
+    
+    # Development resource limits (more permissive)
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "/usr/local/bin/healthcheck.py"]
+      interval: 60s  # 开发环境检查频率较低
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    
+    # Restart policy for development
+    restart: unless-stopped
+    
+    # Expose port for development debugging
+    ports:
+      - "8000:8000"  # 开发环境暴露端口用于调试
+    
+    # Development-specific overrides
+    user: root  # 开发环境允许root用户便于调试
+    read_only: false  # 开发环境允许写入
+    
+    # Override default command for development
+    command: ["python", "-u", "server.py"]
+
+# Development-specific named volumes
+volumes:
+  xtool-mcp-config-dev:
+    driver: local
+  xtool-memory-dev:
+    driver: local
+
+# Development networks
+networks:
+  xtool-network-dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

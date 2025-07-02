@@ -1,6 +1,6 @@
 # Docker Deployment Guide
 
-This guide covers deploying Zen MCP Server using Docker and Docker Compose for production environments.
+This guide covers deploying xtool MCP Server using Docker and Docker Compose for production environments.
 
 ## Quick Start
 

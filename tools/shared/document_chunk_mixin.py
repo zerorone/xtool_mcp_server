@@ -12,7 +12,7 @@ Document Chunk Mixin - 文档分片功能混入类
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from mcp.types import TextContent
 
@@ -68,7 +68,7 @@ class DocumentChunkMixin:
             return True
         return False
 
-    def chunk_response(self, content: str) -> List[str]:
+    def chunk_response(self, content: str) -> list[str]:
         """
         将响应内容分片
 
@@ -83,7 +83,7 @@ class DocumentChunkMixin:
 
     def create_chunked_response(
         self, content: str, original_request: Any, model_info: Optional[dict] = None, chunk_index: int = 0
-    ) -> Union[ToolOutput, List[TextContent]]:
+    ) -> Union[ToolOutput, list[TextContent]]:
         """
         创建分片响应
 
@@ -164,7 +164,7 @@ class DocumentChunkMixin:
                 },
             )
 
-    def handle_chunk_continuation(self, state: Dict[str, Any]) -> Union[ToolOutput, List[TextContent]]:
+    def handle_chunk_continuation(self, state: dict[str, Any]) -> Union[ToolOutput, list[TextContent]]:
         """
         处理分片继续请求
 

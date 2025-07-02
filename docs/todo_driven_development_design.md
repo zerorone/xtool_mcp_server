@@ -1,8 +1,8 @@
-# TODO-Driven Development System Design for Zen MCP Server
+# TODO-Driven Development System Design for xtool MCP Server
 
 ## Executive Summary
 
-This document outlines a comprehensive TODO-driven development system for Zen MCP Server that enables self-bootstrapping development. The system integrates with existing Zen capabilities to create an intelligent task management framework that can analyze dependencies, manage context switches, and track progress while leveraging the power of 25 thinking patterns.
+This document outlines a comprehensive TODO-driven development system for xtool MCP Server that enables self-bootstrapping development. The system integrates with existing Zen capabilities to create an intelligent task management framework that can analyze dependencies, manage context switches, and track progress while leveraging the power of 25 thinking patterns.
 
 ## Architecture Overview
 
@@ -403,7 +403,7 @@ class ZenSelfDevelopment:
         return plan
     
     def execute_development_task(self, task_id: str) -> dict:
-        """Execute a development task using appropriate Zen tools"""
+        """Execute a development task using appropriate Xtool tools"""
         task = self.todo_manager.tasks.get(task_id)
         if not task:
             return {"error": "Task not found"}
@@ -411,7 +411,7 @@ class ZenSelfDevelopment:
         # Update status
         self.todo_manager.update_task_status(task_id, TaskStatus.IN_PROGRESS)
         
-        # Determine which Zen tool to use
+        # Determine which xtool tool to use
         tool_mapping = {
             "investigation": "thinkdeep",
             "architecture": "analyze",
@@ -508,16 +508,16 @@ branch_manager.switch_context("main")
 ### Self-Development Mode
 ```python
 # Initialize Zen self-development
-zen_dev = ZenSelfDevelopment()
-zen_dev.load_development_todos()
+XTOOL_dev = ZenSelfDevelopment()
+XTOOL_dev.load_development_todos()
 
 # Plan next step
-plan = zen_dev.plan_next_development_step()
+plan = XTOOL_dev.plan_next_development_step()
 print(f"Next task: {plan['task']['title']}")
 print(f"Recommended patterns: {plan['recommended_patterns']}")
 
 # Execute task
-result = zen_dev.execute_development_task(plan['task']['id'])
+result = XTOOL_dev.execute_development_task(plan['task']['id'])
 ```
 
 ## Benefits
@@ -532,6 +532,6 @@ result = zen_dev.execute_development_task(plan['task']['id'])
 
 ## Conclusion
 
-This TODO-driven development system transforms Zen MCP Server into a self-aware, self-improving development platform. By integrating task management with memory, thinking patterns, and existing tools, Zen can effectively manage its own evolution while providing powerful development assistance to users.
+This TODO-driven development system transforms xtool MCP Server into a self-aware, self-improving development platform. By integrating task management with memory, thinking patterns, and existing tools, Zen can effectively manage its own evolution while providing powerful development assistance to users.
 
 The system is designed to be immediately useful while having room for continuous improvement through its learning capabilities. As Zen uses this system for its own development, it will become increasingly effective at task management and development planning.

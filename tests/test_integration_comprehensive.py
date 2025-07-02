@@ -1,5 +1,5 @@
 """
-Comprehensive Integration Test Suite for Zen MCP Server
+Comprehensive Integration Test Suite for xtool MCP Server
 
 This test suite provides end-to-end testing of the MCP server functionality,
 including tool discovery, execution, error handling, and cross-tool collaboration.
@@ -176,7 +176,7 @@ class TestToolExecution:
 
         assert result.status == "success"
         assert __version__ in result.output
-        assert "Zen MCP Server" in result.output
+        assert "xtool MCP Server" in result.output
 
     @pytest.mark.asyncio
     @patch("tools.listmodels.ModelProviderRegistry.get_all_models")

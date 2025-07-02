@@ -23,11 +23,11 @@ FIXED ISSUES:
 
 4. SHELL SCRIPTS WINDOWS COMPATIBILITY:
     - Shell scripts didn't detect Windows virtual environment paths
-    - Solution: Added detection for .zen_venv/Scripts/ paths
+    - Solution: Added detection for xtool_venv/Scripts/ paths
 
 5. SHELL SCRIPTS PYTHON AND TOOL DETECTION:
     - Python and tool executables not detected on Windows
-    - Solution: Added detection for .zen_venv/Scripts/*.exe paths
+    - Solution: Added detection for xtool_venv/Scripts/*.exe paths
 
 6. COMMUNICATION SIMULATOR LOGGER BUG:
     - AttributeError: logger used before initialization
@@ -345,13 +345,13 @@ class CrossPlatformPatcher:
     def patch_shell_venv_detection(self, content: str) -> tuple[str, bool]:
         """Patch 6: Add Windows venv detection to shell scripts."""
         # Check if already patched
-        if 'elif [[ -f ".zen_venv/Scripts/activate" ]]; then' in content:
+        if 'elif [[ -f "xtool_venv/Scripts/activate" ]]; then' in content:
             return content, False
 
         # Patch run_integration_tests.sh
         old_venv_check = """# Activate virtual environment
-if [[ -f ".zen_venv/bin/activate" ]]; then
-    source .zen_venv/bin/activate
+if [[ -f "xtool_venv/bin/activate" ]]; then
+    source xtool_venv/bin/activate
     echo "✅ Using virtual environment"
 else
     echo "❌ No virtual environment found!"
@@ -360,11 +360,11 @@ else
 fi"""
 
         new_venv_check = """# Activate virtual environment
-if [[ -f ".zen_venv/bin/activate" ]]; then
-    source .zen_venv/bin/activate
+if [[ -f "xtool_venv/bin/activate" ]]; then
+    source xtool_venv/bin/activate
     echo "✅ Using virtual environment (Unix/Linux/macOS)"
-elif [[ -f ".zen_venv/Scripts/activate" ]]; then
-    source .zen_venv/Scripts/activate
+elif [[ -f "xtool_venv/Scripts/activate" ]]; then
+    source xtool_venv/Scripts/activate
     echo "✅ Using virtual environment (Windows)"
 else
     echo "❌ No virtual environment found!"
@@ -381,14 +381,14 @@ fi"""
     def patch_shell_python_detection(self, content: str) -> tuple[str, bool]:
         """Patch 7: Add Windows Python/tool detection to shell scripts."""
         # Check if already patched
-        if 'elif [[ -f ".zen_venv/Scripts/python.exe" ]]; then' in content:
+        if 'elif [[ -f "xtool_venv/Scripts/python.exe" ]]; then' in content:
             return content, False
 
         # Patch code_quality_checks.sh Python detection
         old_python_check = """# Determine Python command
-if [[ -f ".zen_venv/bin/python" ]]; then
-    PYTHON_CMD=".zen_venv/bin/python"
-    PIP_CMD=".zen_venv/bin/pip"
+if [[ -f "xtool_venv/bin/python" ]]; then
+    PYTHON_CMD="xtool_venv/bin/python"
+    PIP_CMD="xtool_venv/bin/pip"
     echo "✅ Using venv"
 elif [[ -n "$VIRTUAL_ENV" ]]; then
     PYTHON_CMD="python"
@@ -401,13 +401,13 @@ else
 fi"""
 
         new_python_check = """# Determine Python command
-if [[ -f ".zen_venv/bin/python" ]]; then
-    PYTHON_CMD=".zen_venv/bin/python"
-    PIP_CMD=".zen_venv/bin/pip"
+if [[ -f "xtool_venv/bin/python" ]]; then
+    PYTHON_CMD="xtool_venv/bin/python"
+    PIP_CMD="xtool_venv/bin/pip"
     echo "✅ Using venv (Unix/Linux/macOS)"
-elif [[ -f ".zen_venv/Scripts/python.exe" ]]; then
-    PYTHON_CMD=".zen_venv/Scripts/python.exe"
-    PIP_CMD=".zen_venv/Scripts/pip.exe"
+elif [[ -f "xtool_venv/Scripts/python.exe" ]]; then
+    PYTHON_CMD="xtool_venv/Scripts/python.exe"
+    PIP_CMD="xtool_venv/Scripts/pip.exe"
     echo "✅ Using venv (Windows)"
 elif [[ -n "$VIRTUAL_ENV" ]]; then
     PYTHON_CMD="python"
@@ -428,16 +428,16 @@ fi"""
     def patch_shell_tool_paths(self, content: str) -> tuple[str, bool]:
         """Patch 8: Add Windows tool paths to shell scripts."""
         # Check if already patched
-        if 'elif [[ -f ".zen_venv/Scripts/ruff.exe" ]]; then' in content:
+        if 'elif [[ -f "xtool_venv/Scripts/ruff.exe" ]]; then' in content:
             return content, False
 
         # Patch code_quality_checks.sh tool paths
         old_tool_paths = """# Set tool paths
-if [[ -f ".zen_venv/bin/ruff" ]]; then
-    RUFF=".zen_venv/bin/ruff"
-    BLACK=".zen_venv/bin/black"
-    ISORT=".zen_venv/bin/isort"
-    PYTEST=".zen_venv/bin/pytest"
+if [[ -f "xtool_venv/bin/ruff" ]]; then
+    RUFF="xtool_venv/bin/ruff"
+    BLACK="xtool_venv/bin/black"
+    ISORT="xtool_venv/bin/isort"
+    PYTEST="xtool_venv/bin/pytest"
 else
     RUFF="ruff"
     BLACK="black"
@@ -446,16 +446,16 @@ else
 fi"""
 
         new_tool_paths = """# Set tool paths
-if [[ -f ".zen_venv/bin/ruff" ]]; then
-    RUFF=".zen_venv/bin/ruff"
-    BLACK=".zen_venv/bin/black"
-    ISORT=".zen_venv/bin/isort"
-    PYTEST=".zen_venv/bin/pytest"
-elif [[ -f ".zen_venv/Scripts/ruff.exe" ]]; then
-    RUFF=".zen_venv/Scripts/ruff.exe"
-    BLACK=".zen_venv/Scripts/black.exe"
-    ISORT=".zen_venv/Scripts/isort.exe"
-    PYTEST=".zen_venv/Scripts/pytest.exe"
+if [[ -f "xtool_venv/bin/ruff" ]]; then
+    RUFF="xtool_venv/bin/ruff"
+    BLACK="xtool_venv/bin/black"
+    ISORT="xtool_venv/bin/isort"
+    PYTEST="xtool_venv/bin/pytest"
+elif [[ -f "xtool_venv/Scripts/ruff.exe" ]]; then
+    RUFF="xtool_venv/Scripts/ruff.exe"
+    BLACK="xtool_venv/Scripts/black.exe"
+    ISORT="xtool_venv/Scripts/isort.exe"
+    PYTEST="xtool_venv/Scripts/pytest.exe"
 else
     RUFF="ruff"
     BLACK="black"
@@ -527,10 +527,10 @@ fi"""
         if os.path.exists(venv_python):
             return venv_python
 
-        # Try .zen_venv as fallback
-        zen_venv_python = os.path.join(current_dir, ".zen_venv", "bin", "python")
-        if os.path.exists(zen_venv_python):
-            return zen_venv_python
+        # Try xtool_venv as fallback
+        XTOOL_venv_python = os.path.join(current_dir, "xtool_venv", "bin", "python")
+        if os.path.exists(XTOOL_venv_python):
+            return XTOOL_venv_python
 
         # Fallback to system python if venv doesn't exist
         self.logger.warning("Virtual environment not found, using system python")
@@ -544,16 +544,16 @@ fi"""
         # Check for different venv structures
         if platform.system() == "Windows":
             # Windows paths
-            zen_venv_python = os.path.join(current_dir, ".zen_venv", "Scripts", "python.exe")
+            XTOOL_venv_python = os.path.join(current_dir, "xtool_venv", "Scripts", "python.exe")
             venv_python = os.path.join(current_dir, "venv", "Scripts", "python.exe")
         else:
             # Unix/Linux/macOS paths
-            zen_venv_python = os.path.join(current_dir, ".zen_venv", "bin", "python")
+            XTOOL_venv_python = os.path.join(current_dir, "xtool_venv", "bin", "python")
             venv_python = os.path.join(current_dir, "venv", "bin", "python")
 
-        # Try .zen_venv first (preferred)
-        if os.path.exists(zen_venv_python):
-            return zen_venv_python
+        # Try xtool_venv first (preferred)
+        if os.path.exists(XTOOL_venv_python):
+            return XTOOL_venv_python
 
         # Try venv as fallback
         if os.path.exists(venv_python):
@@ -616,7 +616,7 @@ fi"""
         old_python_path = """    def _get_python_path(self) -> str:
         \"\"\"Get the Python path for the virtual environment\"\"\"
         current_dir = os.getcwd()
-        venv_python = os.path.join(current_dir, ".zen_venv", "bin", "python")
+        venv_python = os.path.join(current_dir, "xtool_venv", "bin", "python")
 
         if os.path.exists(venv_python):
             return venv_python
@@ -633,13 +633,13 @@ fi"""
         # Check for different venv structures
         if platform.system() == "Windows":
             # Windows paths
-            zen_venv_python = os.path.join(current_dir, ".zen_venv", "Scripts", "python.exe")
+            XTOOL_venv_python = os.path.join(current_dir, "xtool_venv", "Scripts", "python.exe")
         else:
             # Unix/Linux/macOS paths
-            zen_venv_python = os.path.join(current_dir, ".zen_venv", "bin", "python")
+            XTOOL_venv_python = os.path.join(current_dir, "xtool_venv", "bin", "python")
 
-        if os.path.exists(zen_venv_python):
-            return zen_venv_python
+        if os.path.exists(XTOOL_venv_python):
+            return XTOOL_venv_python
 
         # Fallback to system python if venv doesn't exist
         self.logger.warning("Virtual environment not found, using system python")
@@ -1047,14 +1047,14 @@ fi"""
         # Validate shell scripts
         if "run_integration_tests_sh" in files:
             run_integration_content = self.read_file(files["run_integration_tests_sh"])
-            if 'elif [[ -f ".zen_venv/Scripts/activate" ]]; then' not in run_integration_content:
+            if 'elif [[ -f "xtool_venv/Scripts/activate" ]]; then' not in run_integration_content:
                 errors.append("Windows venv detection missing in run_integration_tests.sh")
 
         if "code_quality_checks_sh" in files:
             code_quality_content = self.read_file(files["code_quality_checks_sh"])
-            if 'elif [[ -f ".zen_venv/Scripts/python.exe" ]]; then' not in code_quality_content:
+            if 'elif [[ -f "xtool_venv/Scripts/python.exe" ]]; then' not in code_quality_content:
                 errors.append("Windows Python detection missing in code_quality_checks.sh")
-            if 'elif [[ -f ".zen_venv/Scripts/ruff.exe" ]]; then' not in code_quality_content:
+            if 'elif [[ -f "xtool_venv/Scripts/ruff.exe" ]]; then' not in code_quality_content:
                 errors.append("Windows tool paths missing in code_quality_checks.sh")
 
         # Validate communication simulator
@@ -1123,14 +1123,14 @@ fi"""
                 "run_integration_tests.sh",
                 [
                     "Add Windows virtual environment detection",
-                    "Support .zen_venv/Scripts/activate path",
+                    "Support xtool_venv/Scripts/activate path",
                 ],
             ),
             (
                 "code_quality_checks.sh",
                 [
                     "Add Windows Python executable detection",
-                    "Support .zen_venv/Scripts/*.exe tool paths",
+                    "Support xtool_venv/Scripts/*.exe tool paths",
                 ],
             ),
             (

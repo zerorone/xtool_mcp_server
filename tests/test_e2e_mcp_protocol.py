@@ -2,7 +2,7 @@
 End-to-End MCP Protocol Test Suite
 
 This test suite simulates actual MCP protocol communication between a client
-and the Zen MCP Server, testing the complete message flow including initialization,
+and the xtool MCP Server, testing the complete message flow including initialization,
 tool discovery, execution, and error handling.
 """
 
@@ -323,7 +323,7 @@ class TestMCPProtocolFlow:
         assert "result" in version_response
         assert len(version_response["result"]) > 0
         assert version_response["result"][0]["type"] == "text"
-        assert "Zen MCP Server" in version_response["result"][0]["text"]
+        assert "xtool MCP Server" in version_response["result"][0]["text"]
 
         # Call thinkboost tool
         thinkboost_response = await client.call_tool(

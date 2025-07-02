@@ -1,5 +1,5 @@
 name: 🛠️ New Gemini Tool Proposal
-description: Propose a new Zen MCP tool (e.g., `summarize`, `fixer`, `refactor`)
+description: Propose a new xtool MCP tool (e.g., `summarize`, `fixer`, `refactor`)
 labels: ["enhancement", "new-tool"]
 body:
   - type: input

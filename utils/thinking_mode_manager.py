@@ -7,7 +7,7 @@ Unified Thinking Mode Manager
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Optional
 
 
 class ThinkingModeType(Enum):
@@ -79,27 +79,27 @@ class ThinkingMode:
     name: str
     description: str
     core_principle: str
-    suitable_for: List[str]
-    keywords: List[str]
-    effectiveness_score: Dict[str, float]  # 问题类型 -> 效果评分
+    suitable_for: list[str]
+    keywords: list[str]
+    effectiveness_score: dict[str, float]  # 问题类型 -> 效果评分
 
     # 可选的详细信息
-    questions: Optional[List[str]] = None
-    steps: Optional[List[str]] = None
-    principles: Optional[List[str]] = None
-    approach: Optional[List[str]] = None
-    elements: Optional[List[str]] = None
-    guidelines: Optional[List[str]] = None
+    questions: Optional[list[str]] = None
+    steps: Optional[list[str]] = None
+    principles: Optional[list[str]] = None
+    approach: Optional[list[str]] = None
+    elements: Optional[list[str]] = None
+    guidelines: Optional[list[str]] = None
 
 
 class ThinkingModeManager:
     """思维模式统一管理器"""
 
     def __init__(self):
-        self._modes: Dict[ThinkingModeType, ThinkingMode] = {}
-        self._stage_mapping: Dict[DevelopmentStage, Dict[str, List[ThinkingModeType]]] = {}
-        self._problem_mapping: Dict[ProblemType, List[ThinkingModeType]] = {}
-        self._combinations: Dict[str, Dict[str, any]] = {}
+        self._modes: dict[ThinkingModeType, ThinkingMode] = {}
+        self._stage_mapping: dict[DevelopmentStage, dict[str, list[ThinkingModeType]]] = {}
+        self._problem_mapping: dict[ProblemType, list[ThinkingModeType]] = {}
+        self._combinations: dict[str, dict[str, any]] = {}
 
         self._initialize_thinking_modes()
         self._initialize_mappings()
@@ -586,7 +586,7 @@ class ThinkingModeManager:
         """获取思维模式"""
         return self._modes.get(mode_type)
 
-    def get_modes_for_stage(self, stage: DevelopmentStage, priority: str = "all") -> List[ThinkingMode]:
+    def get_modes_for_stage(self, stage: DevelopmentStage, priority: str = "all") -> list[ThinkingMode]:
         """获取开发阶段的推荐思维模式"""
         stage_map = self._stage_mapping.get(stage, {})
 
@@ -599,15 +599,14 @@ class ThinkingModeManager:
 
         return [self._modes[mt] for mt in mode_types if mt in self._modes]
 
-    def get_modes_for_problem(self, problem_type: ProblemType) -> List[ThinkingMode]:
+    def get_modes_for_problem(self, problem_type: ProblemType) -> list[ThinkingMode]:
         """获取问题类型的推荐思维模式"""
         mode_types = self._problem_mapping.get(problem_type, [])
         return [self._modes[mt] for mt in mode_types if mt in self._modes]
 
-    def get_modes_by_keywords(self, text: str) -> List[ThinkingMode]:
+    def get_modes_by_keywords(self, text: str) -> list[ThinkingMode]:
         """根据关键词匹配思维模式"""
         text_lower = text.lower()
-        matched_modes = []
         scores = {}
 
         for mode_type, mode in self._modes.items():
@@ -623,7 +622,7 @@ class ThinkingModeManager:
         sorted_modes = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         return [self._modes[mt] for mt, _ in sorted_modes]
 
-    def get_combination(self, name: str) -> Optional[Dict]:
+    def get_combination(self, name: str) -> Optional[dict]:
         """获取思维模式组合"""
         combo = self._combinations.get(name)
         if combo:
@@ -635,7 +634,7 @@ class ThinkingModeManager:
             }
         return None
 
-    def recommend_modes(self, context: Dict[str, any]) -> Dict[str, List[ThinkingMode]]:
+    def recommend_modes(self, context: dict[str, any]) -> dict[str, list[ThinkingMode]]:
         """智能推荐思维模式"""
         recommendations = {"primary": [], "secondary": [], "combinations": []}
 
@@ -665,7 +664,7 @@ class ThinkingModeManager:
                 seen_primary.add(mode.type)
                 unique_primary.append(mode)
         recommendations["primary"] = unique_primary
-        
+
         seen_secondary = set()
         unique_secondary = []
         for mode in recommendations["secondary"]:
@@ -683,7 +682,7 @@ class ThinkingModeManager:
 
         return recommendations
 
-    def get_default_modes(self) -> List[ThinkingMode]:
+    def get_default_modes(self) -> list[ThinkingMode]:
         """获取默认思维模式"""
         default_types = [
             ThinkingModeType.FIRST_PRINCIPLES,
@@ -692,7 +691,7 @@ class ThinkingModeManager:
         ]
         return [self._modes[mt] for mt in default_types if mt in self._modes]
 
-    def auto_select_modes(self, context: Dict[str, any]) -> List[ThinkingMode]:
+    def auto_select_modes(self, context: dict[str, any]) -> list[ThinkingMode]:
         """自动选择最合适的思维模式"""
         recommendations = self.recommend_modes(context)
 

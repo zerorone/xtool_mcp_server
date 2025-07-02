@@ -1,5 +1,5 @@
 """
-Quick validation test script for Zen MCP Server
+Quick validation test script for xtool MCP Server
 
 This script runs basic tests that don't require API keys to validate
 the core functionality is working.
@@ -22,7 +22,7 @@ async def test_version():
     print(f"Status: {result.status}")
     print(f"Output preview: {result.output[:200]}...")
     assert result.status == "success"
-    assert "Zen MCP Server" in result.output
+    assert "xtool MCP Server" in result.output
     print("Version tool test passed!")
 
 
@@ -71,7 +71,7 @@ async def test_tool_discovery():
 async def main():
     """Run all quick validation tests"""
     print("=" * 60)
-    print("🚀 Zen MCP Server - Quick Validation Tests")
+    print("🚀 xtool MCP Server - Quick Validation Tests")
     print("=" * 60)
 
     try:

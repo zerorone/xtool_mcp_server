@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xtool-mcp": {
+      "command": "docker",
+      "args": [
+        "exec", "-i", "xtool-mcp", 
+        "python", "/app/server.py"
+      ]
+    }
+  }
+}

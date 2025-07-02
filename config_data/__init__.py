@@ -1,5 +1,5 @@
 """
-Configuration package for Zen MCP Server
+Configuration package for xtool MCP Server
 """
 
 # 从根级别配置模块导入所有配置常量

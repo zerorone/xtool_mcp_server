@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Zen MCP Server now features an advanced memory system with intelligent multi-dimensional indexing, enabling fast and accurate retrieval of stored knowledge across different contexts and time spans.
+The xtool MCP Server now features an advanced memory system with intelligent multi-dimensional indexing, enabling fast and accurate retrieval of stored knowledge across different contexts and time spans.
 
 ## Key Features
 
@@ -217,7 +217,7 @@ memory cleanup
 
 ## Integration with Other Tools
 
-The enhanced memory system integrates seamlessly with other Zen tools:
+The enhanced memory system integrates seamlessly with other Xtool tools:
 
 - **thinkdeep**: Recalls relevant memories during analysis
 - **debug**: Searches for similar past issues

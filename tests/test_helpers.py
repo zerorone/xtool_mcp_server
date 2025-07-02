@@ -1,5 +1,5 @@
 """
-Test helpers for Zen MCP Server tests
+Test helpers for xtool MCP Server tests
 
 This module provides helper functions to handle the actual return format
 from the MCP server tools.

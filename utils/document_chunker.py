@@ -15,7 +15,6 @@ Document Chunker - 智能文档分片工具
 import logging
 import re
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from utils.token_utils import estimate_tokens
 
@@ -91,7 +90,7 @@ class DocumentChunker:
         token_count = estimate_tokens(content)
         return token_count > self.max_tokens
 
-    def chunk_document(self, content: str) -> List[DocumentChunk]:
+    def chunk_document(self, content: str) -> list[DocumentChunk]:
         """
         将文档分成多个智能分片
 
@@ -132,7 +131,7 @@ class DocumentChunker:
         logger.info(f"Document chunked into {total_parts} parts")
         return chunks
 
-    def _identify_special_blocks(self, lines: List[str]) -> List[Tuple[int, int, str]]:
+    def _identify_special_blocks(self, lines: list[str]) -> list[tuple[int, int, str]]:
         """
         识别文档中的特殊块（代码块、表格等）
 
@@ -171,7 +170,7 @@ class DocumentChunker:
 
         return special_blocks
 
-    def _create_chunks(self, lines: List[str], special_blocks: List[Tuple[int, int, str]]) -> List[DocumentChunk]:
+    def _create_chunks(self, lines: list[str], special_blocks: list[tuple[int, int, str]]) -> list[DocumentChunk]:
         """
         根据智能断点创建文档分片
 
@@ -199,7 +198,7 @@ class DocumentChunker:
                 # 如果在特殊块内，需要包含整个块
                 if in_special_block:
                     # 找到包含当前行的特殊块
-                    for start, end, block_type in special_blocks:
+                    for start, end, _block_type in special_blocks:
                         if start <= i <= end:
                             # 如果当前分片已经包含了块的开始，继续添加到块结束
                             if any(
@@ -254,7 +253,7 @@ class DocumentChunker:
 
         return chunks
 
-    def _find_best_break_point(self, lines: List[str]) -> int:
+    def _find_best_break_point(self, lines: list[str]) -> int:
         """
         在行列表中找到最佳断点
 
@@ -305,7 +304,7 @@ class DocumentChunker:
         # 默认：在 80% 处断开
         return int(len(lines) * 0.8)
 
-    def format_chunks(self, chunks: List[DocumentChunk]) -> List[str]:
+    def format_chunks(self, chunks: list[DocumentChunk]) -> list[str]:
         """
         格式化所有分片，添加标记
 
@@ -319,7 +318,7 @@ class DocumentChunker:
 
 
 # 便捷函数
-def chunk_document(content: str, max_tokens: int = 30000) -> List[str]:
+def chunk_document(content: str, max_tokens: int = 30000) -> list[str]:
     """
     便捷函数：将文档分片并格式化
 

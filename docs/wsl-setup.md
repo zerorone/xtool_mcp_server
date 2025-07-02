@@ -1,6 +1,6 @@
 # WSL (Windows Subsystem for Linux) Setup Guide
 
-This guide provides detailed instructions for setting up Zen MCP Server on Windows using WSL.
+This guide provides detailed instructions for setting up xtool MCP Server on Windows using WSL.
 
 ## Prerequisites for WSL
 
@@ -71,7 +71,7 @@ python3 -m pip install --upgrade pip
 cat ~/.claude.json | grep -A 10 "zen"
 
 # The configuration should show the correct WSL path to the Python executable
-# Example: "/home/YourName/xtool_mcp_server/.zen_venv/bin/python"
+# Example: "/home/YourName/xtool_mcp_server/xtool_venv/bin/python"
 ```
 
 ### Performance Tip

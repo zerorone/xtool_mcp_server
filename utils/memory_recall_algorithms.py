@@ -12,7 +12,7 @@ import logging
 import re
 from datetime import datetime
 from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from .intelligent_memory_retrieval import get_memory_index
 from .intelligent_memory_retrieval import intelligent_recall_memory as base_recall
@@ -92,7 +92,7 @@ class MemoryRecallEngine:
 
         return min(1.0, final_score)
 
-    def thinking_pattern_match(self, memory_content: str, target_patterns: Optional[List[str]] = None) -> float:
+    def thinking_pattern_match(self, memory_content: str, target_patterns: Optional[list[str]] = None) -> float:
         """
         思维模式匹配算法
 
@@ -115,7 +115,7 @@ class MemoryRecallEngine:
             richness = len(detected_patterns) / total_patterns if total_patterns > 0 else 0
             return min(1.0, richness * 2)  # 放大系数，鼓励模式多样性
 
-    def context_similarity(self, memory: Dict[str, Any], context: Dict[str, Any]) -> float:
+    def context_similarity(self, memory: dict[str, Any], context: dict[str, Any]) -> float:
         """
         上下文相似度计算
 
@@ -201,14 +201,14 @@ class MemoryRecallEngine:
     def advanced_recall(
         self,
         query: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
-        thinking_patterns: Optional[List[str]] = None,
+        context: Optional[dict[str, Any]] = None,
+        thinking_patterns: Optional[list[str]] = None,
         semantic_threshold: float = 0.3,
         pattern_threshold: float = 0.2,
         context_weight: float = 0.3,
         limit: int = 10,
         **kwargs,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         高级记忆召回
 
@@ -299,7 +299,7 @@ class MemoryRecallEngine:
 
         return scored_memories[:limit]
 
-    def _tokenize(self, text: str) -> List[str]:
+    def _tokenize(self, text: str) -> list[str]:
         """分词处理"""
         # 简单的分词实现，可以根据需要扩展
         # 去除标点符号，按空格分词
@@ -308,7 +308,7 @@ class MemoryRecallEngine:
         stop_words = {"the", "a", "an", "is", "are", "was", "were", "in", "on", "at", "to", "for"}
         return [w for w in words if w not in stop_words and len(w) > 2]
 
-    def _calculate_semantic_relevance(self, query_words: List[str], content_words: List[str]) -> float:
+    def _calculate_semantic_relevance(self, query_words: list[str], content_words: list[str]) -> float:
         """计算语义相关性"""
         # 定义一些简单的语义相关词组
         semantic_groups = {
@@ -348,7 +348,7 @@ class MemoryRecallEngine:
 
         return len(matched_groups) / len(query_groups) if query_groups else 0.0
 
-    def _extract_thinking_patterns(self, content: str) -> Set[str]:
+    def _extract_thinking_patterns(self, content: str) -> set[str]:
         """从内容中提取思维模式特征"""
         detected_patterns = set()
         content_lower = content.lower()
@@ -399,10 +399,10 @@ def get_recall_engine() -> MemoryRecallEngine:
 
 def advanced_memory_recall(
     query: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None,
-    thinking_patterns: Optional[List[str]] = None,
+    context: Optional[dict[str, Any]] = None,
+    thinking_patterns: Optional[list[str]] = None,
     **kwargs,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     便捷的高级记忆召回接口
 

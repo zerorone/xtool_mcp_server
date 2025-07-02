@@ -1,5 +1,5 @@
 """
-Unit tests for Docker configuration and implementation of Zen MCP Server
+Unit tests for Docker configuration and implementation of xtool MCP Server
 
 This module tests:
 - Docker and MCP configuration
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestDockerConfiguration:
-    """Tests for Docker configuration of Zen MCP Server"""
+    """Tests for Docker configuration of xtool MCP Server"""
 
     def setup_method(self):
         """Setup for each test"""
@@ -208,11 +208,11 @@ class TestMCPIntegration:
 
         # Check structure
         assert "servers" in expected_config
-        zen_docker = expected_config["servers"]["zen-docker"]
-        assert zen_docker["command"] == "docker"
-        assert "run" in zen_docker["args"]
-        assert "--rm" in zen_docker["args"]
-        assert "-i" in zen_docker["args"]
+        XTOOL_docker = expected_config["servers"]["zen-docker"]
+        assert XTOOL_docker["command"] == "docker"
+        assert "run" in XTOOL_docker["args"]
+        assert "--rm" in XTOOL_docker["args"]
+        assert "-i" in XTOOL_docker["args"]
 
     def test_stdio_communication_structure(self):
         """Test structure of stdio communication"""

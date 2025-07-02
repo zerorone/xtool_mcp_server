@@ -1,6 +1,44 @@
-# Zen MCP: Many Workflows. One Context.
+# xtool MCP: Many Workflows. One Context.
 
-[zen_web.webm](https://github.com/user-attachments/assets/851e3911-7f06-47c0-a4ab-a2601236697c)
+### 🎯 极速开始 - 30秒配置
+
+#### 方式1：一键安装（推荐）
+```bash
+curl -fsSL https://raw.githubusercontent.com/xiaocodepro/xtool-mcp-server/main/quick-setup.sh | bash
+```
+
+#### 方式2：手动配置
+在任意项目中创建 `mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "xtool": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}",
+        "-v", "${HOME}/.xtool_memory:/app/.xtool_memory",
+        "ghcr.io/xiaocodepro/xtool-mcp-server:latest",
+        "python", "/app/server.py"
+      ]
+    }
+  }
+}
+```
+
+配置 API Key（至少一个）：
+```bash
+export OPENROUTER_API_KEY="your_key"  # 或 GEMINI_API_KEY, OPENAI_API_KEY 等
+```
+
+运行：`claude .`
+
+**就这么简单！** 无需安装，直接使用 20+ AI 工具。 [详细文档 →](./QUICK_START.md)
+
+---
+
+[XTOOL_web.webm](https://github.com/user-attachments/assets/851e3911-7f06-47c0-a4ab-a2601236697c)
 
 <div align="center">
   <b>🤖 <a href="https://www.anthropic.com/claude-code">Claude</a> OR <a href="https://github.com/google-gemini/gemini-cli">Gemini CLI</a> + [Gemini / OpenAI / Grok / OpenRouter / DIAL / Ollama / Any Model] = Your Ultimate AI Development Team</b>
@@ -235,7 +273,7 @@ Edit `~/.gemini/settings.json` and add:
 }
 ```
 
-**Note**: While Zen MCP Server connects successfully to Gemini CLI, tool invocation is not working correctly yet. See [Gemini CLI Setup](docs/gemini-setup.md) for updates.
+**Note**: While xtool MCP Server connects successfully to Gemini CLI, tool invocation is not working correctly yet. See [Gemini CLI Setup](docs/gemini-setup.md) for updates.
 </details>
 
 **What this does:**
@@ -253,19 +291,19 @@ git clone https://github.com/BeehiveInnovations/xtool_mcp_server.git
 cd xtool_mcp_server
 
 # One-command setup installs Zen in Claude
-./run-server.sh
+build/scripts/run-server.sh
 
 # Or for Windows users using PowerShell:
 ./run-server.ps1
 
 # To view MCP configuration for Claude
-./run-server.sh -c
+build/scripts/run-server.sh -c
 
 # PowerShell:
 ./run-server.ps1 -Config
 
 # See help for more
-./run-server.sh --help
+build/scripts/run-server.sh --help
 
 # PowerShell:
 ./run-server.ps1 -Help
@@ -277,7 +315,7 @@ cd xtool_mcp_server
 - **Ready to use immediately** - No manual configuration needed
 - **Also works with Gemini CLI** - See [Gemini CLI Setup](docs/gemini-setup.md) for configuration
 
-**After updates:** Always run `./run-server.sh` again after `git pull` to ensure everything stays current.
+**After updates:** Always run `build/scripts/run-server.sh` again after `git pull` to ensure everything stays current.
 
 **Windows users:** Using WSL? See the [WSL Setup Guide](docs/wsl-setup.md) for detailed instructions.
 
@@ -313,10 +351,10 @@ If you were already running a `claude` code session, please exit and start a new
 
 #### If Setting up for Claude Desktop
 
-**Need the exact configuration?** Run `./run-server.sh -c` to display the platform-specific setup instructions with correct paths.
+**Need the exact configuration?** Run `build/scripts/run-server.sh -c` to display the platform-specific setup instructions with correct paths.
 
 1. **Open Claude Desktop config**: Settings → Developer → Edit Config
-2. **Copy the configuration** shown by `./run-server.sh -c` into your `claude_desktop_config.json`
+2. **Copy the configuration** shown by `build/scripts/run-server.sh -c` into your `claude_desktop_config.json`
 3. **Restart Claude Desktop** for changes to take effect
 
 ### 4. Start Using It!
@@ -664,7 +702,7 @@ This server enables **true AI collaboration** between Claude and multiple AI mod
 
 ## Configuration
 
-Configure the Zen MCP Server through environment variables in your `.env` file. Supports multiple AI providers, model restrictions, conversation settings, and advanced options.
+Configure the xtool MCP Server through environment variables in your `.env` file. Supports multiple AI providers, model restrictions, conversation settings, and advanced options.
 
 ```env
 # Quick start - Auto mode (recommended)

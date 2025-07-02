@@ -1,12 +1,12 @@
-# Zen MCP Server 使用指南
+# xtool MCP Server 使用指南
 
-本文档详细说明了如何使用 Zen MCP Server 中的各种工具。
+本文档详细说明了如何使用 xtool MCP Server 中的各种工具。
 
 ## 使用方式
 
 ### 1. 通过 Claude 或 Gemini CLI（推荐）
 
-这是最常见和推荐的使用方式。Zen MCP Server 设计为 MCP（Model Context Protocol）服务器，与 Claude Code 或 Gemini CLI 配合使用。
+这是最常见和推荐的使用方式。xtool MCP Server 设计为 MCP（Model Context Protocol）服务器，与 Claude Code 或 Gemini CLI 配合使用。
 
 #### 在 Claude 中使用
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
 ### 3. 通过 MCP 协议直接调用（高级用法）
 
-Zen MCP Server 运行在 stdio 上，使用 JSON-RPC 协议。理论上可以直接发送 JSON-RPC 消息来调用工具，但这种方式较为复杂，不推荐。
+xtool MCP Server 运行在 stdio 上，使用 JSON-RPC 协议。理论上可以直接发送 JSON-RPC 消息来调用工具，但这种方式较为复杂，不推荐。
 
 ## 可用工具列表
 

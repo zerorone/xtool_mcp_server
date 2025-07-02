@@ -6,7 +6,7 @@
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from utils.enhanced_file_processor import get_enhanced_file_processor
 from utils.file_processing_integration import OptimizedFileHandler
@@ -24,7 +24,7 @@ class ExampleToolWithOptimizedFiles:
     def __init__(self, tool_name: str = "example_tool"):
         self.tool_name = tool_name
 
-    async def process_files_traditionally(self, files: List[str], max_tokens: int = 50000) -> str:
+    async def process_files_traditionally(self, files: list[str], max_tokens: int = 50000) -> str:
         """传统的文件处理方式（用于对比）"""
 
         from utils.file_utils import read_files
@@ -37,8 +37,8 @@ class ExampleToolWithOptimizedFiles:
         return content
 
     async def process_files_optimized(
-        self, files: List[str], max_tokens: int = 50000, existing_files: Optional[Set[str]] = None
-    ) -> tuple[str, Dict[str, Any]]:
+        self, files: list[str], max_tokens: int = 50000, existing_files: Optional[set[str]] = None
+    ) -> tuple[str, dict[str, Any]]:
         """优化的文件处理方式"""
 
         logger.info(f"[{self.tool_name}] 使用优化方法处理 {len(files)} 个文件")
@@ -54,7 +54,7 @@ class ExampleToolWithOptimizedFiles:
 
         return content, stats
 
-    async def demonstrate_optimization_benefits(self, test_files: List[str]):
+    async def demonstrate_optimization_benefits(self, test_files: list[str]):
         """演示优化效果"""
 
         print(f"\n🧪 {self.tool_name} 文件处理优化演示")

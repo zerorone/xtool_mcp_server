@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for Zen MCP Server
+Comprehensive Test Runner for xtool MCP Server
 
 This script runs all test suites and generates a comprehensive test report.
 """
@@ -62,7 +62,7 @@ class TestReporter:
         """Generate final test report"""
         report = []
         report.append("\n" + "=" * 80)
-        report.append("ZEN MCP SERVER - COMPREHENSIVE TEST REPORT")
+        report.append("xtool MCP SERVER - COMPREHENSIVE TEST REPORT")
         report.append("=" * 80)
         report.append(f"Timestamp: {self.results['timestamp']}")
         report.append("")
@@ -207,7 +207,7 @@ def check_environment():
 
 def main():
     """Main test runner"""
-    print("🚀 Zen MCP Server - Comprehensive Test Suite")
+    print("🚀 xtool MCP Server - Comprehensive Test Suite")
     print("=" * 60)
 
     # Check environment

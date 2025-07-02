@@ -1,7 +1,7 @@
 """
 Cross-Tool Collaboration Test Suite
 
-This test suite validates that different tools in the Zen MCP Server can work
+This test suite validates that different tools in the xtool MCP Server can work
 together effectively to solve complex tasks through collaboration.
 """
 

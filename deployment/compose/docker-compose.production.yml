@@ -1,0 +1,138 @@
+# xtool MCP Server - 生产环境 Docker Compose 配置
+# 原始项目生产部署
+
+version: '3.8'
+
+services:
+  xtool_mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: xtool_mcp_server:production
+    container_name: xtool-mcp-production
+    restart: unless-stopped
+    
+    environment:
+      # 基本配置
+      - DEFAULT_MODEL=auto
+      - LOG_LEVEL=INFO
+      - TZ=UTC
+      - PYTHONUNBUFFERED=1
+      - LOCALE=zh-CN
+      
+      # API密钥（从.env文件加载）
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      
+      # 记忆工具优化
+      - MEMORY_TOOL_MODEL=gemini-2.5-flash
+      
+      # 增强功能配置
+      - XTOOL_FILE_OPTIMIZATION_ENABLED=true
+      - XTOOL_FILE_CACHE_MEMORY_MB=100
+      - XTOOL_FILE_CACHE_DISK_MB=500
+      - XTOOL_PARALLEL_FILE_READS=10
+      
+      # 工作流配置
+      - XTOOL_WORKFLOW_PERSISTENCE_ENABLED=true
+      - XTOOL_WORKFLOW_MAX_STEPS=50
+      - XTOOL_WORKFLOW_CLEANUP_INTERVAL=300
+      
+      # 监控配置
+      - XTOOL_MONITORING_ENABLED=true
+      - XTOOL_HEALTH_CHECK_INTERVAL=30
+    
+    volumes:
+      # 持久化数据
+      - zen-logs:/app/logs
+      - zen-memory:/app/.XTOOL_memory
+      - zen-config:/app/conf
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    
+    # 健康检查（使用内置脚本）
+    healthcheck:
+      test: ["CMD", "python", "/usr/local/bin/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    # 网络配置
+    ports:
+      - "8080:8080"  # HTTP接口（如果需要）
+    
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # 可选：Redis缓存（如需要高性能缓存）
+  redis:
+    image: redis:7-alpine
+    container_name: zen-redis-production
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - zen-redis-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+          cpus: '0.25'
+    profiles:
+      - monitoring
+      - full
+
+  # 可选：Prometheus监控
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: zen-prometheus-production
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - zen-prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+          cpus: '0.5'
+    profiles:
+      - monitoring
+      - full
+
+volumes:
+  zen-logs:
+    driver: local
+  zen-memory:
+    driver: local
+  zen-config:
+    driver: local
+  zen-redis-data:
+    driver: local
+  zen-prometheus-data:
+    driver: local
+
+networks:
+  default:
+    name: zen-mcp-network

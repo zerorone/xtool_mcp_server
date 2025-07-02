@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Optional, Union
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -40,12 +40,12 @@ class MemoryItem:
 
     # 核心标识
     id: str
-    content: Union[str, Dict[str, Any]]
+    content: Union[str, dict[str, Any]]
     layer: str  # "global", "project", "session"
 
     # 元数据
     type: str = "general"
-    tags: List[str] = None
+    tags: list[str] = None
     category: str = "default"
     importance: str = "medium"  # "low", "medium", "high", "critical"
 
@@ -58,10 +58,10 @@ class MemoryItem:
     quality_score: float = 1.0
     access_count: int = 0
     relevance_score: float = 0.0
-    related_items: List[str] = None
+    related_items: list[str] = None
 
     # 语义向量（预留）
-    embedding: Optional[List[float]] = None
+    embedding: Optional[list[float]] = None
     embedding_model: Optional[str] = None
 
     # 衰减控制
@@ -82,12 +82,12 @@ class MemoryItem:
         if self.last_accessed is None:
             self.last_accessed = self.created_at
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """转换为字典格式"""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MemoryItem":
+    def from_dict(cls, data: dict[str, Any]) -> "MemoryItem":
         """从字典创建记忆项"""
         return cls(**data)
 
@@ -143,12 +143,12 @@ class MemoryLayer(ABC):
         self.layer_name = layer_name
         self.storage_path = storage_path
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        self._memory_items: Dict[str, MemoryItem] = {}
-        self._indexes: Dict[str, Dict[str, Set[str]]] = {"type": {}, "tags": {}, "category": {}, "importance": {}}
+        self._memory_items: dict[str, MemoryItem] = {}
+        self._indexes: dict[str, dict[str, set[str]]] = {"type": {}, "tags": {}, "category": {}, "importance": {}}
         self.load_all()
 
     @abstractmethod
-    def get_retention_policy(self) -> Dict[str, Any]:
+    def get_retention_policy(self) -> dict[str, Any]:
         """获取层级特定的保留策略"""
         pass
 
@@ -186,12 +186,12 @@ class MemoryLayer(ABC):
         self,
         query: Optional[str] = None,
         type_filter: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         category: Optional[str] = None,
         importance: Optional[str] = None,
         min_quality: float = 0.0,
         limit: int = 50,
-    ) -> List[MemoryItem]:
+    ) -> list[MemoryItem]:
         """搜索记忆项"""
         candidates = set(self._memory_items.keys())
 
@@ -284,7 +284,7 @@ class MemoryLayer(ABC):
 
         return removed_count
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """获取层级统计信息"""
         total_items = len(self._memory_items)
         if total_items == 0:
@@ -401,7 +401,7 @@ class GlobalMemoryLayer(MemoryLayer):
     def __init__(self, storage_path: Path):
         super().__init__("global", storage_path)
 
-    def get_retention_policy(self) -> Dict[str, Any]:
+    def get_retention_policy(self) -> dict[str, Any]:
         """全局层保留策略：长期存储，高质量要求"""
         return {
             "min_decay_score": 0.3,
@@ -428,7 +428,7 @@ class ProjectMemoryLayer(MemoryLayer):
     def __init__(self, storage_path: Path):
         super().__init__("project", storage_path)
 
-    def get_retention_policy(self) -> Dict[str, Any]:
+    def get_retention_policy(self) -> dict[str, Any]:
         """项目层保留策略：中期存储，中等质量要求"""
         return {
             "min_decay_score": 0.2,
@@ -464,7 +464,7 @@ class SessionMemoryLayer(MemoryLayer):
     def __init__(self, storage_path: Path):
         super().__init__("session", storage_path)
 
-    def get_retention_policy(self) -> Dict[str, Any]:
+    def get_retention_policy(self) -> dict[str, Any]:
         """会话层保留策略：短期存储，低质量要求"""
         return {
             "min_decay_score": 0.1,
@@ -512,10 +512,10 @@ class EnhancedMemorySystem:
 
     def save_memory(
         self,
-        content: Union[str, Dict[str, Any]],
+        content: Union[str, dict[str, Any]],
         layer: str = "session",
         type_: str = "general",
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         category: str = "default",
         importance: str = "medium",
         **kwargs,
@@ -552,7 +552,7 @@ class EnhancedMemorySystem:
             return None
 
         # 从所有层搜索
-        for layer_name, memory_layer in self.layers.items():
+        for _layer_name, memory_layer in self.layers.items():
             item = memory_layer.get_item(item_id)
             if item:
                 return item
@@ -560,8 +560,8 @@ class EnhancedMemorySystem:
         return None
 
     def search_memories(
-        self, query: Optional[str] = None, layers: Optional[List[str]] = None, **search_kwargs
-    ) -> List[MemoryItem]:
+        self, query: Optional[str] = None, layers: Optional[list[str]] = None, **search_kwargs
+    ) -> list[MemoryItem]:
         """跨层搜索记忆"""
         if layers is None:
             layers = ["global", "project", "session"]
@@ -577,7 +577,7 @@ class EnhancedMemorySystem:
 
         return all_results
 
-    def promote_memories(self) -> Dict[str, int]:
+    def promote_memories(self) -> dict[str, int]:
         """自动提升记忆到更高层级"""
         promotion_counts = {"session_to_project": 0, "project_to_global": 0}
 
@@ -613,7 +613,7 @@ class EnhancedMemorySystem:
 
         return promotion_counts
 
-    def cleanup_all_layers(self) -> Dict[str, int]:
+    def cleanup_all_layers(self) -> dict[str, int]:
         """清理所有层的过期记忆"""
         cleanup_counts = {}
         for layer_name, memory_layer in self.layers.items():
@@ -625,7 +625,7 @@ class EnhancedMemorySystem:
 
         return cleanup_counts
 
-    def get_system_statistics(self) -> Dict[str, Any]:
+    def get_system_statistics(self) -> dict[str, Any]:
         """获取系统统计信息"""
         stats = {"layers": {}, "total_items": 0, "overall_quality": 0.0}
 
@@ -666,19 +666,19 @@ def get_enhanced_memory_system(storage_path: Optional[str] = None) -> EnhancedMe
 
     if _global_memory_system is None:
         if storage_path is None:
-            storage_path = os.getenv("ENHANCED_MEMORY_PATH", ".zen_memory")
+            storage_path = os.getenv("ENHANCED_MEMORY_PATH", ".XTOOL_memory")
         _global_memory_system = EnhancedMemorySystem(storage_path)
 
     return _global_memory_system
 
 
-def save_memory_item(content: Union[str, Dict[str, Any]], layer: str = "session", **kwargs) -> str:
+def save_memory_item(content: Union[str, dict[str, Any]], layer: str = "session", **kwargs) -> str:
     """便捷的记忆保存函数"""
     system = get_enhanced_memory_system()
     return system.save_memory(content, layer, **kwargs)
 
 
-def search_memory_items(query: Optional[str] = None, **kwargs) -> List[MemoryItem]:
+def search_memory_items(query: Optional[str] = None, **kwargs) -> list[MemoryItem]:
     """便捷的记忆搜索函数"""
     system = get_enhanced_memory_system()
     return system.search_memories(query, **kwargs)

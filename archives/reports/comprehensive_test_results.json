@@ -1,0 +1,253 @@
+{
+  "simple_tools": {
+    "chat": {
+      "name": "chat",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "challenge": {
+      "name": "challenge",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "listmodels": {
+      "name": "listmodels",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "version": {
+      "name": "version",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "memory": {
+      "name": "memory",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "recall": {
+      "name": "recall",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "thinkboost": {
+      "name": "thinkboost",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "xtool_advisor": {
+      "name": "xtool_advisor",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    }
+  },
+  "workflow_tools": {
+    "thinkdeep": {
+      "name": "thinkdeep",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "planner": {
+      "name": "planner",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "consensus": {
+      "name": "consensus",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "codereview": {
+      "name": "codereview",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "precommit": {
+      "name": "precommit",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "debug": {
+      "name": "debug",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "secaudit": {
+      "name": "secaudit",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "docgen": {
+      "name": "docgen",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "analyze": {
+      "name": "analyze",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "refactor": {
+      "name": "refactor",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "tracer": {
+      "name": "tracer",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    },
+    "testgen": {
+      "name": "testgen",
+      "status": "pass",
+      "error": null,
+      "basic_methods": {
+        "get_name": true,
+        "get_description": true,
+        "get_input_schema": true
+      },
+      "schema_valid": true
+    }
+  },
+  "renamed_tools": {
+    "xtool_advisor_functionality": {
+      "status": "pass",
+      "class_name": "XtoolAdvisorTool",
+      "tool_name": "xtool_advisor",
+      "context7_detection": true,
+      "tools_count": 2,
+      "thinking_modes_count": 3
+    }
+  },
+  "thinking_manager": {
+    "thinking_manager": {
+      "status": "pass",
+      "manager_available": true,
+      "thinking_modes_count": 20,
+      "special_modes": [
+        "AUTO",
+        "DEFAULT"
+      ]
+    }
+  },
+  "summary": {
+    "total_tests": 20,
+    "passed_tests": 20,
+    "success_rate": 100.0,
+    "test_duration": 0.0016188621520996094
+  }
+}

@@ -3,7 +3,7 @@
 挑战性工作流压力测试
 
 使用 challenge 工具的对抗性测试理念，
-对 Zen MCP Server 的工作流系统进行极限压力测试。
+对 xtool MCP Server 的工作流系统进行极限压力测试。
 """
 
 import asyncio
@@ -106,7 +106,7 @@ class WorkflowStressTester:
 
         async def run_workflow(workflow_id: int):
             """运行单个工作流"""
-            tool = DebugIssueTool() if workflow_id % 2 == 0 else CodeReviewTool()
+            DebugIssueTool() if workflow_id % 2 == 0 else CodeReviewTool()
 
             # 创建挑战性输入
             challenge_prompt = (
@@ -311,7 +311,7 @@ class WorkflowStressTester:
     async def run_all_tests(self):
         """运行所有测试"""
         print("=" * 60)
-        print("Zen MCP Server 工作流系统挑战性压力测试")
+        print("xtool MCP Server 工作流系统挑战性压力测试")
         print("=" * 60)
 
         tests = [

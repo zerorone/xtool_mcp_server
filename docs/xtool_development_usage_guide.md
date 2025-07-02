@@ -1,6 +1,6 @@
 # 🎯 Zen 自举开发使用指南
 
-本指南说明如何使用 Zen MCP Server 的工具来执行"用 Zen 开发 Zen"的开发计划。
+本指南说明如何使用 xtool MCP Server 的工具来执行"用 Zen 开发 Zen"的开发计划。
 
 ## 🚀 快速开始
 
@@ -8,9 +8,9 @@
 
 ```bash
 # 激活 zen 环境
-source .zen_venv/bin/activate
+source xtool_venv/bin/activate
 
-# 查看当前可用的 zen 工具
+# 查看当前可用的 Xtool 工具
 # 在 Claude 中使用 listmodels 工具查看可用模型
 ```
 
@@ -46,7 +46,7 @@ memory:
   action: "save"
   topic: "三层记忆架构设计决策"
   content: "[thinkdeep 的输出结果]"
-  context: "zen_development"
+  context: "XTOOL_development"
   importance: "critical"
 ```
 
@@ -105,7 +105,7 @@ memory:
     完成的任务：[列表]
     遇到的挑战：[描述]
     明日计划：[任务]
-  context: "zen_development_daily"
+  context: "XTOOL_development_daily"
 ```
 
 ## 🔄 工作流模式

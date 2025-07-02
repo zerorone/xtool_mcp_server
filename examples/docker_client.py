@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Zen MCP Server Docker 客户端示例
-演示如何从其他项目调用运行在 Docker 中的 Zen MCP Server
+xtool MCP Server Docker 客户端示例
+演示如何从其他项目调用运行在 Docker 中的 xtool MCP Server
 """
 
 import json
 import subprocess
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class ZenMCPDockerClient:
-    """Docker 中的 Zen MCP Server 客户端"""
+    """Docker 中的 xtool MCP Server 客户端"""
 
-    def __init__(self, container_name: str = "zen-mcp-production"):
+    def __init__(self, container_name: str = "xtool-mcp-production"):
         self.container_name = container_name
 
     def _execute_in_container(self, python_code: str) -> str:
@@ -32,7 +32,7 @@ class ZenMCPDockerClient:
         except Exception as e:
             raise Exception(f"容器调用失败: {str(e)}")
 
-    def call_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
+    def call_tool(self, tool_name: str, **kwargs) -> dict[str, Any]:
         """调用指定的工具"""
 
         # 构建调用代码
@@ -69,10 +69,10 @@ async def main():
             tool = VersionTool()
         else:
             raise ValueError(f"不支持的工具: {tool_name}")
-        
+
         # 准备参数
         params = {json.dumps(kwargs, ensure_ascii=False)}
-        
+
         # 执行工具
         if hasattr(tool, 'run'):
             if asyncio.iscoroutinefunction(tool.run):
@@ -81,7 +81,7 @@ async def main():
                 result = tool.run(**params)
         else:
             raise ValueError(f"工具 {tool_name} 没有 run 方法")
-        
+
         # 返回结果
         output = {{
             "success": True,
@@ -89,9 +89,9 @@ async def main():
             "result": result,
             "params": params
         }}
-        
+
         print(json.dumps(output, ensure_ascii=False, indent=2))
-        
+
     except Exception as e:
         error_output = {{
             "success": False,
@@ -113,27 +113,27 @@ if __name__ == "__main__":
         except json.JSONDecodeError:
             return {"success": False, "error": f"无法解析输出: {output}", "raw_output": output}
 
-    def chat(self, prompt: str, files: Optional[list] = None, images: Optional[list] = None) -> Dict[str, Any]:
+    def chat(self, prompt: str, files: Optional[list] = None, images: Optional[list] = None) -> dict[str, Any]:
         """聊天工具"""
         return self.call_tool("chat", prompt=prompt, files=files or [], images=images or [])
 
-    def list_models(self) -> Dict[str, Any]:
+    def list_models(self) -> dict[str, Any]:
         """列出可用模型"""
         return self.call_tool("listmodels")
 
-    def get_version(self) -> Dict[str, Any]:
+    def get_version(self) -> dict[str, Any]:
         """获取版本信息"""
         return self.call_tool("version")
 
-    def memory_save(self, content: str, layer: str = "session", **kwargs) -> Dict[str, Any]:
+    def memory_save(self, content: str, layer: str = "session", **kwargs) -> dict[str, Any]:
         """保存记忆"""
         return self.call_tool("memory", action="save", content=content, layer=layer, **kwargs)
 
-    def memory_recall(self, query: str = None, **kwargs) -> Dict[str, Any]:
+    def memory_recall(self, query: str = None, **kwargs) -> dict[str, Any]:
         """回忆记忆"""
         return self.call_tool("recall", query=query, **kwargs)
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """健康检查"""
         try:
             result = subprocess.run(
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
 def main():
     """示例用法"""
-    print("🚀 Zen MCP Server Docker 客户端示例")
+    print("🚀 xtool MCP Server Docker 客户端示例")
     print("=" * 50)
 
     # 创建客户端
@@ -178,7 +178,7 @@ def main():
 
     # 聊天示例
     print("\\n4. 聊天示例:")
-    chat_result = client.chat("你好！请简单介绍一下 Zen MCP Server 的主要功能。")
+    chat_result = client.chat("你好！请简单介绍一下 xtool MCP Server 的主要功能。")
     if chat_result.get("success"):
         print(f"回复: {chat_result['result'][:100]}...")
     else:

@@ -1,5 +1,5 @@
 """
-Zen MCP Server - Main server implementation
+xtool MCP Server - Main server implementation
 
 This module implements the core MCP (Model Context Protocol) server that provides
 AI-powered tools for code analysis, review, and assistance using multiple AI models.
@@ -173,7 +173,7 @@ logger = logging.getLogger(__name__)
 
 # Create the MCP server instance with a unique name identifier
 # This name is used by MCP clients to identify and connect to this specific server
-server: Server = Server("zen-server")
+server: Server = Server("xtool-server")
 
 
 # Constants for tool filtering
@@ -287,7 +287,7 @@ TOOLS = {
     "memory": MemoryManagerTool(),  # Intelligent memory management with three-layer system
     "recall": MemoryRecallTool(),  # Token-aware memory recall with structured order
     "thinkboost": ThinkBoostTool(),  # Enhanced thinking patterns for Claude Code
-    "zen_advisor": XtoolAdvisorTool(),  # Intelligent tool recommendation system with thinking modes
+    "xtool_advisor": XtoolAdvisorTool(),  # Intelligent tool recommendation system with thinking modes
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
     # Monitoring and optimization tools
@@ -383,10 +383,10 @@ PROMPT_TEMPLATES = {
         "description": "Enhanced thinking patterns for Claude Code",
         "template": "Boost thinking patterns for this task",
     },
-    "zen_advisor": {
-        "name": "zen_advisor",
+    "xtool_advisor": {
+        "name": "xtool_advisor",
         "description": "Intelligent tool recommendation with thinking modes",
-        "template": "Analyze query and recommend appropriate Zen tools with {model}",
+        "template": "Analyze query and recommend appropriate Xtool tools with {model}",
     },
     "listmodels": {
         "name": "listmodels",
@@ -396,7 +396,7 @@ PROMPT_TEMPLATES = {
     "version": {
         "name": "version",
         "description": "Show server version and system information",
-        "template": "Show Zen MCP Server version",
+        "template": "Show xtool MCP Server version",
     },
 }
 
@@ -1153,7 +1153,7 @@ async def handle_list_prompts() -> list[Prompt]:
     """
     List all available prompts for Claude Code shortcuts.
 
-    This handler returns prompts that enable shortcuts like /zen:thinkdeeper.
+    This handler returns prompts that enable shortcuts like /xtool:thinkdeeper.
     We automatically generate prompts from all tools (1:1 mapping) plus add
     a few marketing aliases with richer templates for commonly used tools.
 
@@ -1203,7 +1203,7 @@ async def handle_get_prompt(name: str, arguments: dict[str, Any] = None) -> GetP
     """
     Get prompt details and generate the actual prompt text.
 
-    This handler is called when a user invokes a prompt (e.g., /zen:thinkdeeper or /zen:chat:o3).
+    This handler is called when a user invokes a prompt (e.g., /xtool:thinkdeeper or /xtool:chat:o3).
     It generates the appropriate text that Claude will then use to call the
     underlying tool.
 
@@ -1316,7 +1316,7 @@ async def main():
     configure_providers()
 
     # Log startup message
-    logger.info("Zen MCP Server starting up...")
+    logger.info("xtool MCP Server starting up...")
     logger.info(f"Log level: {log_level}")
 
     # Log current model mode

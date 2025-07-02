@@ -45,7 +45,7 @@ python validation_crossplatform.py
 
 4. **SHELL SCRIPT COMPATIBILITY ON WINDOWS:**
    - Shell scripts did not detect Windows virtual environment paths
-   - Solution: Added detection for .zen_venv/Scripts/ paths
+   - Solution: Added detection for xtool_venv/Scripts/ paths
 
 5. **COMMUNICATION SIMULATOR LOGGER BUG:**
    - AttributeError: logger used before initialization

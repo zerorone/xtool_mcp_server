@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "xtool": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}",
+        "-v", "${HOME}/.xtool_memory:/app/.xtool_memory",
+        "ghcr.io/xiaocodepro/xtool-mcp-server:latest",
+        "python", "/app/server.py"
+      ]
+    }
+  }
+}

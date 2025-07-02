@@ -1,0 +1,684 @@
+基于您的需求和提供的实施方案，我来制定一个完整的智能记忆增强系统实施计划。这个系统将充分利用 Zen MCP Server 的现有架构，实现您期望的所有功能。
+
+## 📋 实施计划概览
+
+### 第一阶段：核心记忆系统实现（Day 1-2）
+
+#### 1. 扩展现有记忆系统
+
+首先，基于现有的 `conversation_memory.py`，创建增强版记忆系统：
+
+```python
+# utils/enhanced_memory.py
+"""扩展的记忆系统，支持三层记忆和智能路径管理"""
+
+import json
+import os
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from utils.conversation_memory import ConversationMemory
+
+class EnhancedMemory(ConversationMemory):
+    """增强版记忆系统 - 支持全局、项目和会话三层记忆"""
+    
+    def __init__(self):
+        super().__init__()
+        
+        # 记忆存储路径
+        self.memory_base = Path(os.getenv("WORKSPACE_ROOT", ".")) / ".zen_memory"
+        self.memory_base.mkdir(exist_ok=True)
+        
+        # 初始化三层记忆存储
+        self.global_memory_file = self.memory_base / "global_memory.json"
+        self.project_memory_file = self.memory_base / "project_memory.json"
+        
+        # 加载持久化记忆
+        self.global_memory = self._load_memory_file(self.global_memory_file)
+        self.project_memory = self._load_memory_file(self.project_memory_file)
+        
+        # 初始化路径记忆
+        self._init_path_memory()
+        
+        # 初始化TODO管理器
+        self._init_todo_manager()
+    
+    def _init_path_memory(self):
+        """初始化路径记忆功能"""
+        self.path_memory = {
+            "virtual_envs": {},  # 虚拟环境路径
+            "project_structure": {},  # 项目结构
+            "file_patterns": {},  # 文件创建模式
+            "command_contexts": {}  # 命令执行上下文
+        }
+        
+        # 从记忆中恢复路径信息
+        if "paths" in self.project_memory:
+            self.path_memory.update(self.project_memory["paths"])
+    
+    def detect_and_remember_venv(self, project_path: str) -> Optional[str]:
+        """自动检测并记住虚拟环境路径"""
+        project_path = Path(project_path)
+        
+        # 常见的虚拟环境名称
+        venv_names = ['.venv', 'venv', '.env', 'env', '.zen_venv']
+        
+        for venv_name in venv_names:
+            venv_path = project_path / venv_name
+            if venv_path.exists() and (venv_path / 'bin' / 'python').exists():
+                # 记住这个项目的虚拟环境
+                self.path_memory["virtual_envs"][str(project_path)] = str(venv_path)
+                self._save_path_memory()
+                return str(venv_path)
+        
+        return None
+    
+    def get_smart_file_location(self, filename: str, context: Dict) -> str:
+        """智能决定文件创建位置"""
+        project_root = context.get("project_root", ".")
+        file_type = Path(filename).suffix
+        
+        # 基于文件类型的智能路径选择
+        type_patterns = {
+            ".py": ["src", "lib", "utils", "."],
+            ".md": ["docs", "documentation", "."],
+            ".json": ["config", "conf", "."],
+            ".yaml": ["config", "conf", "."],
+            ".yml": ["config", "conf", "."],
+        }
+        
+        # 查找合适的目录
+        patterns = type_patterns.get(file_type, ["."])
+        for pattern in patterns:
+            target_dir = Path(project_root) / pattern
+            if target_dir.exists() and target_dir.is_dir():
+                return str(target_dir / filename)
+        
+        # 默认在项目根目录
+        return str(Path(project_root) / filename)
+    
+    def _init_todo_manager(self):
+        """初始化TODO管理功能"""
+        self.todo_manager = {
+            "main_thread": [],  # 主线任务
+            "branches": {},  # 分支任务
+            "current_context": "main",  # 当前上下文
+            "task_history": []  # 任务历史
+        }
+        
+        # 从记忆中恢复TODO状态
+        if "todo_state" in self.project_memory:
+            self.todo_manager.update(self.project_memory["todo_state"])
+    
+    def parse_todo_file(self, todo_path: str) -> Dict:
+        """解析TODO文件并更新主线任务"""
+        # 实现TODO文件解析逻辑
+        todos = []
+        with open(todo_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip().startswith('- [ ]'):
+                    todos.append({
+                        "task": line.strip()[6:],
+                        "status": "pending",
+                        "created": datetime.now().isoformat()
+                    })
+        
+        self.todo_manager["main_thread"] = todos
+        self._save_todo_state()
+        return {"parsed": len(todos), "tasks": todos}
+    
+    def create_task_branch(self, branch_name: str, context: str) -> str:
+        """创建临时任务分支"""
+        branch_id = f"branch_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.todo_manager["branches"][branch_id] = {
+            "name": branch_name,
+            "context": context,
+            "tasks": [],
+            "created": datetime.now().isoformat(),
+            "parent": self.todo_manager["current_context"]
+        }
+        
+        # 切换到分支上下文
+        self.todo_manager["current_context"] = branch_id
+        self._save_todo_state()
+        
+        return branch_id
+    
+    def return_to_main_thread(self) -> Dict:
+        """从分支返回主线"""
+        current = self.todo_manager["current_context"]
+        if current != "main" and current in self.todo_manager["branches"]:
+            # 记录分支完成
+            branch = self.todo_manager["branches"][current]
+            branch["completed"] = datetime.now().isoformat()
+            
+            # 返回主线
+            self.todo_manager["current_context"] = "main"
+            self._save_todo_state()
+            
+            return {
+                "status": "returned_to_main",
+                "branch_summary": branch
+            }
+        
+        return {"status": "already_on_main"}
+```
+
+#### 2. 实现记忆工具
+
+```python
+# tools/simple/memory.py
+"""记忆管理工具 - 支持智能路径识别和TODO管理"""
+
+from typing import Dict, List, Optional
+from tools.base_tool import BaseTool, ToolRequest, ToolOutput
+from utils.enhanced_memory import EnhancedMemory
+import json
+
+class MemoryTool(BaseTool):
+    """记忆管理工具"""
+    
+    def __init__(self):
+        super().__init__()
+        self.memory_system = EnhancedMemory()
+        
+    def get_name(self) -> str:
+        return "memory"
+    
+    def get_description(self) -> str:
+        return "Manage memories, paths, and TODO tasks intelligently"
+    
+    async def run(self, request: ToolRequest) -> ToolOutput:
+        """执行记忆操作"""
+        try:
+            action = request.params.get("action", "recall")
+            
+            if action == "save":
+                result = await self._save_memory(request)
+            elif action == "recall":
+                result = await self._recall_memory(request)
+            elif action == "detect_venv":
+                result = await self._detect_virtual_env(request)
+            elif action == "smart_path":
+                result = await self._get_smart_path(request)
+            elif action == "parse_todo":
+                result = await self._parse_todo(request)
+            elif action == "create_branch":
+                result = await self._create_task_branch(request)
+            elif action == "return_main":
+                result = await self._return_to_main(request)
+            elif action == "analyze":
+                result = await self._analyze_patterns(request)
+            else:
+                raise ValueError(f"Unknown action: {action}")
+            
+            return ToolOutput(
+                status="success",
+                content=json.dumps(result, indent=2),
+                metadata={
+                    "tool_name": self.get_name(),
+                    "action": action
+                }
+            )
+            
+        except Exception as e:
+            return ToolOutput(
+                status="error",
+                error=str(e)
+            )
+    
+    async def _detect_virtual_env(self, request: ToolRequest) -> Dict:
+        """检测并记住虚拟环境"""
+        project_path = request.params.get("project_path", ".")
+        venv_path = self.memory_system.detect_and_remember_venv(project_path)
+        
+        if venv_path:
+            # 保存到项目记忆
+            self.memory_system.save_memory(
+                content={
+                    "type": "virtual_env",
+                    "project": project_path,
+                    "venv_path": venv_path,
+                    "python": f"{venv_path}/bin/python",
+                    "pip": f"{venv_path}/bin/pip"
+                },
+                memory_type="project",
+                tags=["environment", "python", "venv"]
+            )
+            
+            return {
+                "found": True,
+                "venv_path": venv_path,
+                "commands": {
+                    "python": f"{venv_path}/bin/python",
+                    "pip": f"{venv_path}/bin/pip"
+                }
+            }
+        
+        return {"found": False, "message": "No virtual environment detected"}
+    
+    async def _get_smart_path(self, request: ToolRequest) -> Dict:
+        """获取智能文件创建路径"""
+        filename = request.params.get("filename")
+        context = request.params.get("context", {})
+        
+        smart_path = self.memory_system.get_smart_file_location(filename, context)
+        
+        return {
+            "filename": filename,
+            "suggested_path": smart_path,
+            "reason": "Based on project structure and file type patterns"
+        }
+```
+
+#### 3. 实现思维工具箱
+
+```python
+# tools/workflow/thinking.py
+"""思维工具箱 - 多模式思维和任务管理"""
+
+from typing import Dict, List, Optional
+from tools.workflow.base_workflow import BaseWorkflowTool
+from utils.enhanced_memory import EnhancedMemory
+import json
+
+class ThinkingTool(BaseWorkflowTool):
+    """多模式思维工具，集成任务管理"""
+    
+    def __init__(self):
+        super().__init__()
+        self.memory_system = EnhancedMemory()
+        
+        # 思维模式定义
+        self.thinking_modes = {
+            "analyze_intent": "分析用户意图和需求",
+            "decompose": "分解复杂问题为子任务",
+            "path_context": "分析路径和环境上下文",
+            "task_planning": "规划任务执行顺序",
+            "branch_decision": "决定是否需要创建任务分支",
+            "solution_synthesis": "综合解决方案"
+        }
+        
+    def get_name(self) -> str:
+        return "think"
+        
+    def get_description(self) -> str:
+        return "Structured thinking with task management awareness"
+    
+    async def run_workflow(self, request: ToolRequest) -> ToolOutput:
+        """执行思维工作流"""
+        mode = request.params.get("mode", "auto")
+        problem = request.params.get("problem")
+        
+        # 自动模式：分析问题类型并选择思维模式
+        if mode == "auto":
+            mode = await self._analyze_and_select_mode(problem)
+        
+        # 从记忆中获取相关上下文
+        context = self._gather_context(problem)
+        
+        # 执行思维流程
+        workflow_steps = self._get_workflow_steps(mode)
+        results = []
+        
+        for step in workflow_steps:
+            step_result = await self._execute_thinking_step(
+                step=step,
+                problem=problem,
+                context=context,
+                previous_results=results
+            )
+            results.append(step_result)
+        
+        # 综合结果并更新记忆
+        final_analysis = self._synthesize_results(mode, results)
+        
+        # 如果涉及任务管理，更新TODO状态
+        if "task_management" in final_analysis:
+            self._update_task_state(final_analysis["task_management"])
+        
+        return ToolOutput(
+            status="success",
+            content=json.dumps(final_analysis, indent=2),
+            metadata={
+                "mode": mode,
+                "steps_executed": len(results)
+            }
+        )
+    
+    def _gather_context(self, problem: str) -> Dict:
+        """从记忆中收集相关上下文"""
+        context = {
+            "current_task": self.memory_system.todo_manager["current_context"],
+            "recent_operations": [],
+            "environment": {},
+            "patterns": []
+        }
+        
+        # 获取环境信息
+        env_memories = self.memory_system.recall_memories(
+            query="virtual_env python pip",
+            scopes=["project"],
+            limit=5
+        )
+        for memory in env_memories:
+            if memory.get("content", {}).get("type") == "virtual_env":
+                context["environment"]["venv"] = memory["content"]
+        
+        # 获取最近的操作记录
+        recent_ops = self.memory_system.recall_memories(
+            query=problem,
+            scopes=["session", "project"],
+            limit=10
+        )
+        context["recent_operations"] = recent_ops
+        
+        return context
+    
+    async def _analyze_and_select_mode(self, problem: str) -> str:
+        """智能分析问题并选择思维模式"""
+        problem_lower = problem.lower()
+        
+        # 基于关键词的模式选择
+        if any(word in problem_lower for word in ["路径", "位置", "找不到", "环境"]):
+            return "path_context"
+        elif any(word in problem_lower for word in ["任务", "todo", "计划", "步骤"]):
+            return "task_planning"
+        elif any(word in problem_lower for word in ["临时", "先", "稍后", "回来"]):
+            return "branch_decision"
+        elif any(word in problem_lower for word in ["分解", "拆分", "复杂"]):
+            return "decompose"
+        else:
+            return "analyze_intent"
+```
+
+### 第二阶段：自动触发机制（Day 3）
+
+#### 1. 修改 server.py 集成自动触发
+
+```python
+# 在 server.py 中添加会话初始化钩子
+
+async def handle_initialize(request):
+    """处理初始化请求，自动触发记忆系统"""
+    # 原有的初始化逻辑...
+    
+    # 自动触发记忆系统
+    memory_system = EnhancedMemory()
+    thinking_tool = ThinkingTool()
+    
+    # 检测项目环境
+    project_root = os.getcwd()
+    venv_result = memory_system.detect_and_remember_venv(project_root)
+    
+    # 加载TODO状态
+    todo_file = Path(project_root) / "TODO.md"
+    if todo_file.exists():
+        memory_system.parse_todo_file(str(todo_file))
+    
+    # 准备初始上下文
+    initial_context = {
+        "project_root": project_root,
+        "virtual_env": venv_result,
+        "todo_status": memory_system.todo_manager,
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    # 保存会话开始记忆
+    memory_system.save_memory(
+        content={
+            "type": "session_start",
+            "context": initial_context
+        },
+        memory_type="session",
+        tags=["initialization"]
+    )
+    
+    logger.info(f"Memory system initialized for project: {project_root}")
+    
+    # 返回增强的初始化响应
+    return {
+        "protocolVersion": "1.0",
+        "capabilities": capabilities,
+        "serverInfo": server_info,
+        "memoryStatus": {
+            "initialized": True,
+            "virtualEnv": venv_result.get("venv_path") if venv_result else None,
+            "todoTasks": len(memory_system.todo_manager["main_thread"])
+        }
+    }
+```
+
+#### 2. 增强工具调用前的记忆注入
+
+```python
+# 在 handle_tool_call 中添加记忆上下文注入
+
+async def handle_tool_call(request):
+    """处理工具调用，自动注入记忆上下文"""
+    tool_name = request.params.get("name")
+    tool_params = request.params.get("arguments", {})
+    
+    # 获取记忆系统实例
+    memory_system = EnhancedMemory()
+    
+    # 为每个工具调用注入相关记忆
+    memory_context = memory_system.get_memory_context(tool_name, tool_params)
+    
+    # 如果是需要路径的操作，自动注入路径信息
+    if tool_name in ["execute", "create_file", "run_command"]:
+        # 获取虚拟环境信息
+        env_info = memory_system.path_memory.get("virtual_envs", {})
+        if env_info:
+            tool_params["env_context"] = env_info
+    
+    # 如果涉及文件创建，获取智能路径建议
+    if tool_name == "create_file" and "path" in tool_params:
+        smart_path = memory_system.get_smart_file_location(
+            tool_params["path"],
+            {"project_root": os.getcwd()}
+        )
+        tool_params["suggested_path"] = smart_path
+    
+    # 增强后的参数执行工具
+    enhanced_params = {
+        **tool_params,
+        "memory_context": memory_context
+    }
+    
+    # 执行原有的工具调用逻辑...
+```
+
+### 第三阶段：TODO 管理集成（Day 4）
+
+#### 1. 创建 TODO 监控工具
+
+```python
+# tools/simple/todo_monitor.py
+"""TODO 监控和管理工具"""
+
+class TodoMonitorTool(BaseTool):
+    """监控TODO状态并维护任务主线"""
+    
+    def get_name(self) -> str:
+        return "todo_monitor"
+    
+    async def run(self, request: ToolRequest) -> ToolOutput:
+        action = request.params.get("action")
+        
+        if action == "check_context":
+            # 检查当前是主线还是分支
+            current = self.memory_system.todo_manager["current_context"]
+            if current == "main":
+                return self._get_main_tasks()
+            else:
+                return self._get_branch_info(current)
+                
+        elif action == "suggest_return":
+            # 建议是否该返回主线
+            return self._analyze_branch_completion()
+            
+        elif action == "track_progress":
+            # 跟踪任务进度
+            return self._update_task_progress(request.params)
+```
+
+### 第四阶段：系统提示词配置（Day 5）
+
+#### 1. 创建记忆系统提示词
+
+```markdown
+# systemprompts/memory.md
+You are integrated with an intelligent memory system that helps you maintain context and manage tasks effectively.
+
+## Memory Capabilities
+
+1. **Path Intelligence**
+   - Virtual environment locations are remembered
+   - Smart file creation paths based on project structure
+   - Command execution contexts
+
+2. **TODO Management**
+   - Main thread tasks from TODO.md
+   - Temporary branch creation for side tasks
+   - Automatic return to main thread
+
+3. **Context Preservation**
+   - Session memories
+   - Project-specific knowledge
+   - Global preferences and patterns
+
+## Automatic Behaviors
+
+- When starting a session, check for virtual environment
+- When creating files, use smart path suggestions
+- When deviating from main tasks, consider creating a branch
+- When completing side tasks, return to main thread
+
+## Memory Usage Guidelines
+
+1. Always check memory context before operations
+2. Update memories when learning new project information
+3. Use branch tasks for temporary diversions
+4. Maintain focus on main TODO items
+```
+
+### 第五阶段：测试和优化（Day 6）
+
+#### 1. 创建集成测试
+
+```python
+# tests/test_memory_integration.py
+import pytest
+from tools.simple.memory import MemoryTool
+from tools.workflow.thinking import ThinkingTool
+
+@pytest.mark.asyncio
+async def test_auto_venv_detection():
+    """测试虚拟环境自动检测"""
+    memory_tool = MemoryTool()
+    
+    # 创建测试虚拟环境
+    test_project = create_test_project_with_venv()
+    
+    # 测试检测
+    result = await memory_tool.run(ToolRequest(
+        tool="memory",
+        params={
+            "action": "detect_venv",
+            "project_path": test_project
+        }
+    ))
+    
+    assert result.status == "success"
+    assert "venv_path" in json.loads(result.content)
+
+@pytest.mark.asyncio
+async def test_todo_branch_flow():
+    """测试TODO分支流程"""
+    memory_tool = MemoryTool()
+    
+    # 创建主线任务
+    await memory_tool.run(ToolRequest(
+        tool="memory",
+        params={
+            "action": "parse_todo",
+            "todo_path": "test_todo.md"
+        }
+    ))
+    
+    # 创建分支
+    branch_result = await memory_tool.run(ToolRequest(
+        tool="memory",
+        params={
+            "action": "create_branch",
+            "branch_name": "fix_urgent_bug",
+            "context": "User reported critical issue"
+        }
+    ))
+    
+    # 返回主线
+    return_result = await memory_tool.run(ToolRequest(
+        tool="memory",
+        params={
+            "action": "return_main"
+        }
+    ))
+    
+    assert return_result.status == "success"
+```
+
+## 使用示例
+
+### 1. 自动环境识别
+```python
+# Claude Code 启动时自动执行
+"检测项目虚拟环境"
+# 系统自动：
+# - 找到 .venv/bin/python
+# - 记住路径
+# - 后续所有 pip install 自动使用正确路径
+```
+
+### 2. 智能文件创建
+```python
+# 用户："创建一个新的工具类 database_helper.py"
+# 系统自动：
+# - 分析项目结构
+# - 发现 utils/ 目录存在
+# - 建议创建在 utils/database_helper.py
+# - 记住这个模式供未来参考
+```
+
+### 3. TODO 任务管理
+```python
+# 主线任务：实现用户认证
+# 用户："等等，我发现了一个紧急bug需要修复"
+# 系统：
+# - 创建临时分支 "fix_urgent_bug"
+# - 记录当前上下文
+# - 完成bug修复后
+# - 提示："Bug已修复，是否返回主线任务'实现用户认证'？"
+```
+
+## 配置选项
+
+```bash
+# .env 文件配置
+ENABLE_MEMORY_SYSTEM=true
+MEMORY_AUTO_SAVE=true
+MEMORY_AUTO_LOAD=true
+MEMORY_STORAGE_PATH=.zen_memory
+PATH_LEARNING_ENABLED=true
+TODO_TRACKING_ENABLED=true
+```
+
+## 实施优势
+
+1. **最小侵入**：基于现有架构，只添加新功能
+2. **智能化高**：自动学习和适应项目结构
+3. **用户友好**：减少重复询问，提高效率
+4. **任务聚焦**：保持主线任务不丢失
+5. **持续优化**：从每次交互中学习
+
+这个实施方案充分利用了 Zen MCP Server 的现有能力，通过智能记忆系统让 Claude Code 成为一个真正"有记忆"的开发助手。

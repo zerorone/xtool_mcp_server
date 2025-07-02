@@ -238,7 +238,7 @@ def test_communication_simulator_fixes():
             # Test Windows path detection
             current_dir = os.getcwd()
             expected_paths = [
-                os.path.join(current_dir, ".zen_venv", "Scripts", "python.exe"),
+                os.path.join(current_dir, "xtool_venv", "Scripts", "python.exe"),
                 os.path.join(current_dir, "venv", "Scripts", "python.exe"),
             ]
 
@@ -287,7 +287,7 @@ def test_base_simulator_test_fixes():
         if platform.system() == "Windows":
             # Test Windows path detection
             current_dir = os.getcwd()
-            expected_path = os.path.join(current_dir, ".zen_venv", "Scripts", "python.exe")
+            expected_path = os.path.join(current_dir, "xtool_venv", "Scripts", "python.exe")
 
             # Check if the method would detect Windows paths
             windows_detection = "Scripts" in expected_path
@@ -334,7 +334,7 @@ def test_shell_scripts_windows_support():
             with open("run_integration_tests.sh", encoding="utf-8") as f:
                 run_script_content = f.read()
 
-            has_windows_venv = 'elif [[ -f ".zen_venv/Scripts/activate" ]]; then' in run_script_content
+            has_windows_venv = 'elif [[ -f "xtool_venv/Scripts/activate" ]]; then' in run_script_content
             has_windows_msg = "Using virtual environment (Windows)" in run_script_content
 
             print(f"  ✅ run_integration_tests.sh Windows venv: {has_windows_venv}")
@@ -351,8 +351,8 @@ def test_shell_scripts_windows_support():
             with open("code_quality_checks.sh", encoding="utf-8") as f:
                 quality_script_content = f.read()
 
-            has_windows_python = 'elif [[ -f ".zen_venv/Scripts/python.exe" ]]; then' in quality_script_content
-            has_windows_tools = 'elif [[ -f ".zen_venv/Scripts/ruff.exe" ]]; then' in quality_script_content
+            has_windows_python = 'elif [[ -f "xtool_venv/Scripts/python.exe" ]]; then' in quality_script_content
+            has_windows_tools = 'elif [[ -f "xtool_venv/Scripts/ruff.exe" ]]; then' in quality_script_content
             has_windows_msg = "Using venv (Windows)" in quality_script_content
 
             print(f"  ✅ code_quality_checks.sh Windows Python: {has_windows_python}")

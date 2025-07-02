@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "xtool": {
+      "command": "python",
+      "args": ["-m", "server"],
+      "env": {
+        "PYTHONPATH": "/Users/xiao/Documents/BaiduNetSyncDownload/XiaoCodePRO/xtool-mcp-server",
+        "OPENROUTER_API_KEY": "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",
+        "DEFAULT_MODEL": "auto",
+        "LOCALE": "zh-CN",
+        "LOG_LEVEL": "DEBUG"
+      }
+    }
+  }
+}

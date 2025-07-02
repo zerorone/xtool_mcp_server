@@ -1,0 +1,105 @@
+# ===========================================
+# XTool MCP Server 本地服务配置
+# Local Service Docker Compose Configuration
+# ===========================================
+
+name: xtool-mcp-local
+
+services:
+  xtool-mcp-local:
+    image: xtool-mcp-server:latest
+    pull_policy: never  # 使用本地镜像，不从远程拉取
+    container_name: xtool-mcp
+    hostname: xtool-mcp-local
+    
+    # 容器标签
+    labels:
+      - "com.xtool-mcp.service=xtool_mcp_server"
+      - "com.xtool-mcp.version=1.0.0"
+      - "com.xtool-mcp.environment=local"
+      - "com.xtool-mcp.description=XTool MCP Server - Local Service for Cross-Project Use"
+    
+    # 环境变量配置
+    env_file:
+      - .env.local
+    
+    environment:
+      # 本地服务特定配置
+      - LOG_LEVEL=DEBUG
+      - DEFAULT_THINKING_MODE_THINKDEEP=high
+      - MAX_MCP_OUTPUT_TOKENS=100000
+      
+      # 服务器配置
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - TZ=Asia/Shanghai
+    
+    # 数据持久化
+    volumes:
+      - xtool-logs-local:/app/logs
+      - xtool-memory-local:/app/.xtool_memory
+      - xtool-config-local:/app/conf
+      - /etc/localtime:/etc/localtime:ro
+    
+    # 网络配置 - 暴露端口供其他项目访问
+    ports:
+      - "8888:8000"  # 使用8888端口避免冲突
+    
+    # 网络设置
+    networks:
+      - xtool-network-local
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    
+    # 健康检查（暂时禁用）
+    # healthcheck:
+    #   test: ["CMD", "python", "/usr/local/bin/healthcheck.py"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+    
+    # 重启策略 - MCP Server 不需要自动重启
+    restart: "no"
+    
+    # 保持容器运行，等待 MCP 连接
+    stdin_open: true
+    tty: true
+    command: ["tail", "-f", "/dev/null"]
+    
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+
+# 网络配置
+networks:
+  xtool-network-local:
+    driver: bridge
+    name: xtool-local-network
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# 持久化卷
+volumes:
+  xtool-logs-local:
+    driver: local
+    name: xtool_logs_local
+  xtool-memory-local:
+    driver: local  
+    name: xtool_memory_local
+  xtool-config-local:
+    driver: local
+    name: xtool_config_local

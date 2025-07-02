@@ -12,7 +12,7 @@ import logging
 import threading
 import time
 from collections import deque
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +53,13 @@ class ThreadSafeWorkflowState:
         cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
         cleanup_thread.start()
 
-    def get_state(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    def get_state(self, workflow_id: str) -> Optional[dict[str, Any]]:
         """线程安全地获取工作流状态"""
         with self._lock:
             self._access_times[workflow_id] = time.time()
             return self._states.get(workflow_id)
 
-    def update_state(self, workflow_id: str, state: Dict[str, Any]) -> bool:
+    def update_state(self, workflow_id: str, state: dict[str, Any]) -> bool:
         """线程安全地更新工作流状态"""
         with self._lock:
             try:
@@ -84,7 +84,7 @@ class ThreadSafeWorkflowState:
                 return True
             return False
 
-    def _check_state_limits(self, state: Dict[str, Any]) -> bool:
+    def _check_state_limits(self, state: dict[str, Any]) -> bool:
         """检查状态是否超出限制"""
         # 检查步骤数
         step_count = state.get("step_number", 0)
@@ -118,7 +118,7 @@ class ThreadSafeWorkflowState:
                 self.remove_state(workflow_id)
                 logger.info(f"清理过期工作流状态: {workflow_id}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取状态统计信息"""
         with self._lock:
             return {
@@ -142,17 +142,17 @@ class SlidingWindowBuffer:
         with self._lock:
             self._buffer.append(item)
 
-    def extend(self, items: List[Any]) -> None:
+    def extend(self, items: list[Any]) -> None:
         """批量添加项目"""
         with self._lock:
             self._buffer.extend(items)
 
-    def get_all(self) -> List[Any]:
+    def get_all(self) -> list[Any]:
         """获取所有项目"""
         with self._lock:
             return list(self._buffer)
 
-    def get_recent(self, count: int) -> List[Any]:
+    def get_recent(self, count: int) -> list[Any]:
         """获取最近的项目"""
         with self._lock:
             if count >= len(self._buffer):
@@ -187,7 +187,7 @@ class WorkflowResourceMonitor:
             usage_mb = self._memory_usage.get(workflow_id, 0) / (1024 * 1024)
             return usage_mb <= WorkflowLimits.MAX_MEMORY_MB
 
-    def get_memory_stats(self) -> Dict[str, Any]:
+    def get_memory_stats(self) -> dict[str, Any]:
         """获取内存统计"""
         with self._lock:
             total_bytes = sum(self._memory_usage.values())
@@ -225,7 +225,7 @@ class ConcurrentWorkflowManager:
                 self._persistent_manager = None
         return self._persistent_manager
 
-    async def start_workflow(self, workflow_id: str, initial_state: Dict[str, Any]) -> bool:
+    async def start_workflow(self, workflow_id: str, initial_state: dict[str, Any]) -> bool:
         """启动工作流"""
         with self._lock:
             if workflow_id in self._active_workflows:
@@ -260,7 +260,7 @@ class ConcurrentWorkflowManager:
         # 只要内存或持久化有一个成功，就认为操作成功
         return memory_success or persistent_success
 
-    async def update_workflow(self, workflow_id: str, state_update: Dict[str, Any]) -> bool:
+    async def update_workflow(self, workflow_id: str, state_update: dict[str, Any]) -> bool:
         """更新工作流"""
         # 先尝试从内存获取状态
         current_state = self.state_manager.get_state(workflow_id)
@@ -329,7 +329,7 @@ class ConcurrentWorkflowManager:
         # 保留状态一段时间用于查询，由清理任务处理
         return True
 
-    def _check_resource_limits(self, state: Dict[str, Any]) -> bool:
+    def _check_resource_limits(self, state: dict[str, Any]) -> bool:
         """检查资源限制"""
         # 检查步骤数
         step_number = state.get("step_number", 0)
@@ -343,12 +343,12 @@ class ConcurrentWorkflowManager:
 
         return True
 
-    def get_active_workflows(self) -> List[str]:
+    def get_active_workflows(self) -> list[str]:
         """获取活跃的工作流列表"""
         with self._lock:
             return list(self._active_workflows)
 
-    def get_global_stats(self) -> Dict[str, Any]:
+    def get_global_stats(self) -> dict[str, Any]:
         """获取全局统计信息"""
         with self._lock:
             stats = {
@@ -365,7 +365,7 @@ class ConcurrentWorkflowManager:
             }
         return stats
 
-    async def get_comprehensive_stats(self) -> Dict[str, Any]:
+    async def get_comprehensive_stats(self) -> dict[str, Any]:
         """获取包含持久化信息的综合统计"""
         basic_stats = self.get_global_stats()
 
@@ -400,13 +400,13 @@ def get_workflow_manager() -> ConcurrentWorkflowManager:
 
 
 # 便捷函数
-async def safe_start_workflow(workflow_id: str, initial_state: Dict[str, Any]) -> bool:
+async def safe_start_workflow(workflow_id: str, initial_state: dict[str, Any]) -> bool:
     """安全启动工作流"""
     manager = get_workflow_manager()
     return await manager.start_workflow(workflow_id, initial_state)
 
 
-async def safe_update_workflow(workflow_id: str, state_update: Dict[str, Any]) -> bool:
+async def safe_update_workflow(workflow_id: str, state_update: dict[str, Any]) -> bool:
     """安全更新工作流"""
     manager = get_workflow_manager()
     return await manager.update_workflow(workflow_id, state_update)
@@ -424,13 +424,13 @@ def create_sliding_findings_buffer(max_size: int = None) -> SlidingWindowBuffer:
     return SlidingWindowBuffer(size)
 
 
-def get_workflow_stats() -> Dict[str, Any]:
+def get_workflow_stats() -> dict[str, Any]:
     """获取工作流统计信息"""
     manager = get_workflow_manager()
     return manager.get_global_stats()
 
 
-async def get_comprehensive_workflow_stats() -> Dict[str, Any]:
+async def get_comprehensive_workflow_stats() -> dict[str, Any]:
     """获取包含持久化信息的综合工作流统计"""
     manager = get_workflow_manager()
     return await manager.get_comprehensive_stats()
@@ -461,7 +461,7 @@ async def restore_workflow_from_persistence(workflow_id: str) -> bool:
         return False
 
 
-async def cleanup_all_expired_workflows(expire_hours: int = 24) -> Dict[str, Any]:
+async def cleanup_all_expired_workflows(expire_hours: int = 24) -> dict[str, Any]:
     """清理所有过期的工作流状态（内存和持久化）"""
     manager = get_workflow_manager()
 

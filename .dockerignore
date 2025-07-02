@@ -30,9 +30,10 @@ Thumbs.db
 logs/*.log*
 *.log
 
-# Docker
-Dockerfile*
-docker-compose*
+# Build and deployment
+build/
+deployment/
+archives/
 .dockerignore
 
 # Documentation
@@ -49,10 +50,35 @@ pytest.ini
 # Development
 .env
 .env.local
+.env.*
 examples/
-scripts/bump_version.py
-code_quality_checks.sh
+scripts/
+code_quality_checks.*
 run_integration_tests.sh
+run-server.*
+quick-deploy.sh
+docker-push.sh
+docker-start.sh
+*.cmd
+*.ps1
+
+# Memory and data
+.xtool_memory/
+.zen_memory/
+memory_architecture_analysis.json
+
+# Project specific
+CHANGELOG*.md
+*REPORT*.md
+rename_*.sh
+update_*.sh
+global_*.py
+comprehensive_test_results.json
+*.zen_backup
+
+# Build and CI
+.github/
+patch/
 
 # Security - Sensitive files
 *.key

@@ -6,7 +6,7 @@
     "zen": {
       "command": "wsl.exe",
       "args": [
-        "/path/to/xtool_mcp_server/.zen_venv/bin/python",
+        "/path/to/xtool_mcp_server/xtool_venv/bin/python",
         "/path/to/xtool_mcp_server/server.py"
       ]
     }

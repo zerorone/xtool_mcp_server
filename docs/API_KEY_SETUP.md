@@ -330,6 +330,6 @@ CUSTOM_API_URL=your_private_endpoint
 1. 运行 `./run-server.sh` 启动服务器
 2. 重启 Claude Desktop
 3. 使用 `listmodels` 工具验证配置
-4. 开始使用 Zen MCP Server！
+4. 开始使用 xtool MCP Server！
 
 有问题？查看 [用户指南](USER_GUIDE.md) 或 [故障排除](troubleshooting.md)。

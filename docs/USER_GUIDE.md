@@ -1,4 +1,4 @@
-# 📚 Zen MCP Server 用户指南
+# 📚 xtool MCP Server 用户指南
 
 ## 目录
 
@@ -423,7 +423,7 @@ thinkdeep → consensus → challenge
 
 ## 总结
 
-Zen MCP Server 的强大之处在于：
+xtool MCP Server 的强大之处在于：
 1. **智能工具协作**：不同工具间的无缝配合
 2. **上下文保持**：跨工具、跨对话的上下文延续
 3. **多模型优势**：充分利用各个 AI 模型的特长

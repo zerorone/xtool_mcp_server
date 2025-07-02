@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "xtool": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--name", "xtool-mcp-${USER}-${RANDOM}",
+        "-e", "GEMINI_API_KEY=${GEMINI_API_KEY}",
+        "-e", "OPENAI_API_KEY=${OPENAI_API_KEY}",
+        "-e", "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}",
+        "-e", "XAI_API_KEY=${XAI_API_KEY}",
+        "-e", "DIAL_API_KEY=${DIAL_API_KEY}",
+        "-e", "CUSTOM_API_URL=${CUSTOM_API_URL}",
+        "-v", "${HOME}/.xtool_memory:/app/.xtool_memory",
+        "-v", "${PWD}:/workspace:ro",
+        "ghcr.io/xiaocodepro/xtool-mcp-server:latest",
+        "python", "/app/server.py"
+      ]
+    }
+  }
+}

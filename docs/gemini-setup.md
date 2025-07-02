@@ -1,13 +1,13 @@
 # Gemini CLI Setup
 
-> **Note**: While Zen MCP Server connects successfully to Gemini CLI, tool invocation is not working
+> **Note**: While xtool MCP Server connects successfully to Gemini CLI, tool invocation is not working
 > correctly yet. We'll update this guide once the integration is fully functional.
 
-This guide explains how to configure Zen MCP Server to work with [Gemini CLI](https://github.com/google-gemini/gemini-cli).
+This guide explains how to configure xtool MCP Server to work with [Gemini CLI](https://github.com/google-gemini/gemini-cli).
 
 ## Prerequisites
 
-- Zen MCP Server installed and configured
+- xtool MCP Server installed and configured
 - Gemini CLI installed
 - At least one API key configured in your `.env` file
 
@@ -33,11 +33,11 @@ This guide explains how to configure Zen MCP Server to work with [Gemini CLI](ht
 #!/bin/bash
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
-exec .zen_venv/bin/python server.py "$@"
+exec xtool_venv/bin/python server.py "$@"
 ```
 
 Then make it executable: `chmod +x xtool_mcp_server`
 
 4. Restart Gemini CLI.
 
-All 15 Zen tools are now available in your Gemini CLI session.
+All 15 Xtool tools are now available in your Gemini CLI session.

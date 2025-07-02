@@ -26,7 +26,7 @@ class OpenRouterProvider(OpenAICompatibleProvider):
     # Custom headers required by OpenRouter
     DEFAULT_HEADERS = {
         "HTTP-Referer": os.getenv("OPENROUTER_REFERER", "https://github.com/BeehiveInnovations/xtool_mcp_server"),
-        "X-Title": os.getenv("OPENROUTER_TITLE", "Zen MCP Server"),
+        "X-Title": os.getenv("OPENROUTER_TITLE", "xtool MCP Server"),
     }
 
     # Model registry for managing configurations and aliases

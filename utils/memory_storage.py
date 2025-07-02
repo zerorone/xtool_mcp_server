@@ -19,7 +19,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock, RLock
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 from uuid import uuid4
 
 from .enhanced_memory import MemoryItem
@@ -37,12 +37,12 @@ class StorageInterface(ABC):
     """存储接口抽象基类"""
 
     @abstractmethod
-    def save_item(self, item_id: str, data: Dict[str, Any]) -> bool:
+    def save_item(self, item_id: str, data: dict[str, Any]) -> bool:
         """保存单个项目"""
         pass
 
     @abstractmethod
-    def load_item(self, item_id: str) -> Optional[Dict[str, Any]]:
+    def load_item(self, item_id: str) -> Optional[dict[str, Any]]:
         """加载单个项目"""
         pass
 
@@ -52,7 +52,7 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
-    def list_items(self) -> List[str]:
+    def list_items(self) -> list[str]:
         """列出所有项目ID"""
         pass
 
@@ -62,7 +62,7 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
-    def get_storage_info(self) -> Dict[str, Any]:
+    def get_storage_info(self) -> dict[str, Any]:
         """获取存储信息"""
         pass
 
@@ -95,15 +95,15 @@ class FileSystemStorage(StorageInterface):
         self.file_extension = file_extension if not enable_compression else f"{file_extension}.gz"
 
         # 并发控制
-        self._locks: Dict[str, Lock] = {}
+        self._locks: dict[str, Lock] = {}
         self._locks_lock = RLock()
 
         # 缓存
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
         self._cache_lock = RLock()
         self._cache_enabled = True
         self._cache_ttl = 300  # 5分钟缓存
-        self._cache_timestamps: Dict[str, float] = {}
+        self._cache_timestamps: dict[str, float] = {}
 
         logger.debug(f"文件系统存储初始化: {self.storage_path}")
 
@@ -124,7 +124,7 @@ class FileSystemStorage(StorageInterface):
         backup_dir.mkdir(exist_ok=True)
         return backup_dir / f"{item_id}.backup.{backup_num}{self.file_extension}"
 
-    def _write_file(self, file_path: Path, data: Dict[str, Any]) -> bool:
+    def _write_file(self, file_path: Path, data: dict[str, Any]) -> bool:
         """原子写入文件"""
         # 创建临时文件
         temp_file = file_path.with_suffix(f".tmp.{uuid4().hex[:8]}")
@@ -147,7 +147,7 @@ class FileSystemStorage(StorageInterface):
                 temp_file.unlink()
             return False
 
-    def _read_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
+    def _read_file(self, file_path: Path) -> Optional[dict[str, Any]]:
         """读取文件"""
         if not file_path.exists():
             return None
@@ -192,7 +192,7 @@ class FileSystemStorage(StorageInterface):
             logger.warning(f"创建备份失败 {item_id}: {e}")
             return False
 
-    def _update_cache(self, item_id: str, data: Dict[str, Any]):
+    def _update_cache(self, item_id: str, data: dict[str, Any]):
         """更新缓存"""
         if not self._cache_enabled:
             return
@@ -201,7 +201,7 @@ class FileSystemStorage(StorageInterface):
             self._cache[item_id] = data.copy()
             self._cache_timestamps[item_id] = time.time()
 
-    def _get_from_cache(self, item_id: str) -> Optional[Dict[str, Any]]:
+    def _get_from_cache(self, item_id: str) -> Optional[dict[str, Any]]:
         """从缓存获取"""
         if not self._cache_enabled:
             return None
@@ -225,7 +225,7 @@ class FileSystemStorage(StorageInterface):
             self._cache.pop(item_id, None)
             self._cache_timestamps.pop(item_id, None)
 
-    def save_item(self, item_id: str, data: Dict[str, Any]) -> bool:
+    def save_item(self, item_id: str, data: dict[str, Any]) -> bool:
         """保存单个项目"""
         lock = self._get_item_lock(item_id)
 
@@ -251,7 +251,7 @@ class FileSystemStorage(StorageInterface):
                 logger.error(f"保存项目 {item_id} 异常: {e}")
                 return False
 
-    def load_item(self, item_id: str) -> Optional[Dict[str, Any]]:
+    def load_item(self, item_id: str) -> Optional[dict[str, Any]]:
         """加载单个项目"""
         # 先尝试缓存
         cached_data = self._get_from_cache(item_id)
@@ -315,7 +315,7 @@ class FileSystemStorage(StorageInterface):
         file_path = self._get_file_path(item_id)
         return file_path.exists()
 
-    def list_items(self) -> List[str]:
+    def list_items(self) -> list[str]:
         """列出所有项目ID"""
         try:
             items = []
@@ -337,7 +337,7 @@ class FileSystemStorage(StorageInterface):
             logger.error(f"列出项目失败: {e}")
             return []
 
-    def get_storage_info(self) -> Dict[str, Any]:
+    def get_storage_info(self) -> dict[str, Any]:
         """获取存储信息"""
         try:
             total_size = 0
@@ -503,7 +503,7 @@ class MemoryStorageManager:
 
         return storage.delete_item(item_id)
 
-    def list_memory_items(self, layer: str) -> List[str]:
+    def list_memory_items(self, layer: str) -> list[str]:
         """列出记忆项ID"""
         storage = self.get_storage(layer)
         if storage is None:
@@ -512,7 +512,7 @@ class MemoryStorageManager:
 
         return storage.list_items()
 
-    def get_comprehensive_stats(self) -> Dict[str, Any]:
+    def get_comprehensive_stats(self) -> dict[str, Any]:
         """获取综合统计信息"""
         stats = {"layers": {}, "total_storage": {"files": 0, "size_bytes": 0, "size_mb": 0.0}}
 
@@ -536,7 +536,7 @@ class MemoryStorageManager:
         logger.debug("清理了所有层的缓存")
 
     @contextmanager
-    def batch_operations(self, layers: Optional[List[str]] = None) -> Iterator[None]:
+    def batch_operations(self, layers: Optional[list[str]] = None) -> Iterator[None]:
         """批量操作上下文管理器"""
         if layers is None:
             layers = list(self.storages.keys())

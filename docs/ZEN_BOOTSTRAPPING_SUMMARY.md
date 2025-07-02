@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the successful completion of the Zen MCP Server self-bootstrapping experiment, where Zen was used to develop and enhance itself over a 10-day period.
+This document summarizes the successful completion of the xtool MCP Server self-bootstrapping experiment, where Zen was used to develop and enhance itself over a 10-day period.
 
 ## Timeline and Achievements
 

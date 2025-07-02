@@ -2,7 +2,7 @@
 
 ## Quick Debugging Steps
 
-If you're experiencing issues with the Zen MCP Server, follow these steps:
+If you're experiencing issues with the xtool MCP Server, follow these steps:
 
 ### 1. Check MCP Connection
 
@@ -79,14 +79,14 @@ See [Logging Documentation](logging.md) for more details on accessing logs.
 
 **Python module not found**
 - Run `./run-server.sh` to reinstall dependencies
-- Check virtual environment is activated: should see `.zen_venv` in the Python path
+- Check virtual environment is activated: should see `xtool_venv` in the Python path
 
 ### 6. Environment Issues
 
 **Virtual Environment Problems**
 ```bash
 # Reset environment completely
-rm -rf .zen_venv
+rm -rf xtool_venv
 ./run-server.sh
 ```
 

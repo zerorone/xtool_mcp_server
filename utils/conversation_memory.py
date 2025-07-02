@@ -208,7 +208,7 @@ CONVERSATION_TIMEOUT_SECONDS = CONVERSATION_TIMEOUT_HOURS * 3600
 
 # Enhanced Memory Configuration
 ENABLE_ENHANCED_MEMORY = os.getenv("ENABLE_ENHANCED_MEMORY", "true").lower() == "true"
-MEMORY_STORAGE_PATH = Path(os.getenv("MEMORY_STORAGE_PATH", ".zen_memory"))
+MEMORY_STORAGE_PATH = Path(os.getenv("MEMORY_STORAGE_PATH", ".XTOOL_memory"))
 AUTO_DETECT_ENV = os.getenv("MEMORY_AUTO_DETECT_ENV", "true").lower() == "true"
 AUTO_SAVE_MEMORY = os.getenv("MEMORY_AUTO_SAVE", "true").lower() == "true"
 

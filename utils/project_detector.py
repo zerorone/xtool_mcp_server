@@ -2,7 +2,7 @@
 Project Environment Auto-Detection System
 
 This module provides intelligent project type detection and environment analysis
-for the Zen MCP Server. It can identify project types, dependencies, build systems,
+for the xtool MCP Server. It can identify project types, dependencies, build systems,
 and provide context-aware recommendations.
 """
 

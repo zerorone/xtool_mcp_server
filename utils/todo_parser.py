@@ -2,7 +2,7 @@
 TODO File Parser and Task Management System
 
 This module provides intelligent TODO file parsing and task management capabilities
-for the Zen MCP Server. It enables task-driven development with dependency analysis,
+for the xtool MCP Server. It enables task-driven development with dependency analysis,
 branch management, and progress tracking.
 
 Key Features:

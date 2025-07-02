@@ -1,7 +1,7 @@
 """
-Zen MCP 服务器的配置和常量
+xtool MCP 服务器的配置和常量
 
-本模块集中了 Zen MCP 服务器的所有配置设置。
+本模块集中了 xtool MCP 服务器的所有配置设置。
 它定义了模型配置、令牌限制、温度默认值以及应用程序中使用的其他常量。
 
 配置值可以在适当的情况下通过环境变量覆盖。
@@ -154,8 +154,8 @@ LOCALE = os.getenv("LOCALE", "")
 ENABLE_ENHANCED_MEMORY = os.getenv("ENABLE_ENHANCED_MEMORY", "true").lower() == "true"
 
 # MEMORY_STORAGE_PATH：存储持久化内存文件的目录
-# 默认值：当前工作目录中的 .zen_memory
-MEMORY_STORAGE_PATH = os.getenv("MEMORY_STORAGE_PATH", ".zen_memory")
+# 默认值：当前工作目录中的 .XTOOL_memory
+MEMORY_STORAGE_PATH = os.getenv("MEMORY_STORAGE_PATH", ".XTOOL_memory")
 
 # AUTO_DETECT_ENV：自动检测并记住项目环境信息
 # 启用后，检测 git 信息、项目文件、依赖项和 TODO 文件

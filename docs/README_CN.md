@@ -1,4 +1,4 @@
-# 🧘 Zen MCP Server - 智能 AI 协作平台
+# 🧘 xtool MCP Server - 智能 AI 协作平台
 
 <div align="center">
 
@@ -11,7 +11,7 @@
 
 ## 🌟 概述
 
-Zen MCP Server 是一个基于模型上下文协议（MCP）的智能 AI 协作平台，提供了一套强大的工具集，帮助开发者利用多个 AI 模型进行高效的软件开发、问题解决和创意探索。
+xtool MCP Server 是一个基于模型上下文协议（MCP）的智能 AI 协作平台，提供了一套强大的工具集，帮助开发者利用多个 AI 模型进行高效的软件开发、问题解决和创意探索。
 
 ### ✨ 核心特性
 
@@ -68,7 +68,7 @@ XAI_API_KEY=your_xai_api_key
 
 4. **重启 Claude Desktop**
 
-配置完成后，重启 Claude Desktop 以加载 Zen MCP Server。
+配置完成后，重启 Claude Desktop 以加载 xtool MCP Server。
 
 ## 🛠️ 可用工具
 
@@ -240,5 +240,5 @@ DISABLED_TOOLS=tool1,tool2
 ---
 
 <div align="center">
-使用 Zen MCP Server 提升您的 AI 协作体验 🚀
+使用 xtool MCP Server 提升您的 AI 协作体验 🚀
 </div>

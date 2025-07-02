@@ -1,6 +1,6 @@
 # Custom Models & API Setup
 
-This guide covers setting up multiple AI model providers including OpenRouter, custom API endpoints, and local model servers. The Zen MCP server supports a unified configuration for all these providers through a single model registry.
+This guide covers setting up multiple AI model providers including OpenRouter, custom API endpoints, and local model servers. The xtool MCP server supports a unified configuration for all these providers through a single model registry.
 
 ## Supported Providers
 
@@ -109,7 +109,7 @@ CUSTOM_MODEL_NAME=llama3.2                          # Default model to use
 
 **Local Model Connection**
 
-The Zen MCP server runs natively, so you can use standard localhost URLs to connect to local models:
+The xtool MCP server runs natively, so you can use standard localhost URLs to connect to local models:
 
 ```bash
 # For Ollama, vLLM, LM Studio, etc. running on your machine

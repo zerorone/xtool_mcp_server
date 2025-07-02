@@ -1,4 +1,4 @@
-# TODO: Zen MCP Server 自举开发任务清单
+# TODO: xtool MCP Server 自举开发任务清单
 
 ## 🚀 主线任务：使用 Zen 开发 Zen v2.0
 

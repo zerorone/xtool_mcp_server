@@ -30,19 +30,19 @@ def test_advanced_quality_calculation():
     high_quality_memory = {
         "content": """
         This is a comprehensive documentation about the authentication system.
-        
+
         ## Overview
         The system uses OAuth2 for secure authentication with the following features:
         - Multi-factor authentication
         - Token refresh mechanism
         - Role-based access control
-        
+
         ## Implementation Details
         1. User initiates login
         2. System validates credentials
         3. Generate JWT token
         4. Return token to client
-        
+
         ## Security Considerations
         - Tokens expire after 1 hour
         - Refresh tokens are stored securely
@@ -234,7 +234,7 @@ async def test_batch_evaluation():
     ]
 
     # 保存测试记忆
-    for i, mem in enumerate(test_memories):
+    for _i, mem in enumerate(test_memories):
         # 调整时间戳以创建不同年龄的记忆
         enhanced_save_memory(
             content=mem["content"],

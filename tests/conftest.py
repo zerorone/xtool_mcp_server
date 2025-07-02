@@ -1,5 +1,5 @@
 """
-Pytest configuration for Zen MCP Server tests
+Pytest configuration for xtool MCP Server tests
 """
 
 import asyncio

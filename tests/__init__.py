@@ -1,1 +1,1 @@
-# Tests for Zen MCP Server
+# Tests for xtool MCP Server

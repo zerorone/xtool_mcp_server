@@ -4,7 +4,7 @@
   "comment3": "Use './run-server.sh -c' to display the correct configuration",
   "mcpServers": {
     "zen": {
-      "command": "/path/to/xtool_mcp_server/.zen_venv/bin/python",
+      "command": "/path/to/xtool_mcp_server/xtool_venv/bin/python",
       "args": ["/path/to/xtool_mcp_server/server.py"]
     }
   }

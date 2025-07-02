@@ -1,6 +1,6 @@
 # Advanced Usage Guide
 
-This guide covers advanced features, configuration options, and workflows for power users of the Zen MCP server.
+This guide covers advanced features, configuration options, and workflows for power users of the xtool MCP server.
 
 ## Table of Contents
 
@@ -236,7 +236,7 @@ All tools that work with files support **both individual files and entire direct
 
 ## Context Revival: AI Memory Beyond Context Limits
 
-**The Zen MCP Server's most revolutionary feature** is its ability to maintain conversation context even after Claude's memory resets. This enables truly persistent AI collaboration across multiple sessions and context boundaries.
+**The xtool MCP Server's most revolutionary feature** is its ability to maintain conversation context even after Claude's memory resets. This enables truly persistent AI collaboration across multiple sessions and context boundaries.
 
 ### **The Breakthrough**
 
@@ -318,7 +318,7 @@ To help choose the right tool for your needs:
 
 ## Vision Support
 
-The Zen MCP server supports vision-capable models for analyzing images, diagrams, screenshots, and visual content. Vision support works seamlessly with all tools and conversation threading.
+The xtool MCP server supports vision-capable models for analyzing images, diagrams, screenshots, and visual content. Vision support works seamlessly with all tools and conversation threading.
 
 **Supported Models:**
 - **Gemini 2.5 Pro & Flash**: Excellent for diagrams, architecture analysis, UI mockups (up to 20MB total)
@@ -374,7 +374,7 @@ The MCP protocol has a combined request+response limit of approximately 25K toke
 User: "Use gemini to review this code: [50,000+ character detailed analysis]"
 
 # Server detects the large prompt and responds:
-Zen MCP: "The prompt is too large for MCP's token limits (>50,000 characters). 
+xtool MCP: "The prompt is too large for MCP's token limits (>50,000 characters). 
 Please save the prompt text to a temporary file named 'prompt.txt' and resend 
 the request with an empty prompt string and the absolute file path included 
 in the files parameter, along with any other files you wish to share as context."

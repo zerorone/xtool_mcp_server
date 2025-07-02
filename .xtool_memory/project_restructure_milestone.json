@@ -1,0 +1,83 @@
+{
+  "type": "milestone",
+  "title": "XTool MCP Server项目结构重组",
+  "timestamp": "2025-01-02",
+  "tags": ["project_structure", "reorganization", "milestone", "xtool"],
+  "quality": 1.0,
+  "content": {
+    "project_info": {
+      "original_name": "zen-mcp-server",
+      "current_name": "XTool MCP Server",
+      "project_type": "AI Model Context Protocol服务器",
+      "supported_tools": "22+种AI工具（分析、调试、重构等）",
+      "supported_models": ["Gemini", "OpenAI", "OpenRouter", "XAI", "自定义模型"]
+    },
+    "directory_structure": {
+      "build/": {
+        "description": "构建相关文件",
+        "subdirs": {
+          "docker/": "Docker构建文件（Dockerfile、Dockerfile.lightweight）",
+          "scripts/": "构建和部署脚本"
+        }
+      },
+      "deployment/": {
+        "description": "部署配置",
+        "subdirs": {
+          "compose/": "Docker Compose文件（dev、prod、enhanced）",
+          "configs/": "配置文件（.env.example、pyproject.toml等）"
+        }
+      },
+      "docs/": {
+        "description": "文档",
+        "subdirs": {
+          "deployment/": "部署相关文档",
+          "development/": "开发相关文档",
+          "tools/": "工具说明文档"
+        }
+      },
+      "archives/": {
+        "description": "归档文件",
+        "subdirs": {
+          "backups/": "备份文件（*.zen_backup）",
+          "reports/": "项目报告和变更日志"
+        }
+      },
+      "tests/": {
+        "description": "测试文件",
+        "subdirs": {
+          "integration/": "集成测试（从根目录移动的test_*.py）"
+        }
+      }
+    },
+    "convenience_scripts": [
+      "quick-start.sh - 快速启动脚本（调用build/scripts/run-server.sh）",
+      "build.sh - Docker构建脚本",
+      "healthcheck.py - Docker健康检查脚本"
+    ],
+    "path_updates": {
+      "./run-server.sh": "build/scripts/run-server.sh",
+      "./docker-compose.dev.yml": "deployment/compose/docker-compose.dev.yml",
+      "./Dockerfile.lightweight": "build/docker/Dockerfile.lightweight",
+      "./code_quality_checks.sh": "build/scripts/code_quality_checks.sh"
+    },
+    "backward_compatibility": [
+      "保留便捷脚本在根目录",
+      "更新了README.md和CLAUDE.md中的路径引用",
+      "更新了.dockerignore排除规则",
+      "创建了QUICK_REFERENCE.md快速参考指南"
+    ],
+    "reorganization_benefits": [
+      "项目结构更加专业化",
+      "提高了可维护性",
+      "提高了易用性",
+      "清晰的目录层次结构"
+    ],
+    "specified_files": [
+      "build/scripts/run-server.sh",
+      "deployment/compose/docker-compose.dev.yml", 
+      "docs/QUICK_REFERENCE.md",
+      "README.md",
+      "CLAUDE.md"
+    ]
+  }
+}

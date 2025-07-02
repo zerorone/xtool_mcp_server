@@ -55,8 +55,8 @@ def test_thinking_pattern_match():
 
     # 测试包含明确模式的内容
     content1 = """
-    Let's analyze this from first principles. What are the fundamental 
-    requirements? We need to think about the system holistically and 
+    Let's analyze this from first principles. What are the fundamental
+    requirements? We need to think about the system holistically and
     consider all interconnected components.
     """
 

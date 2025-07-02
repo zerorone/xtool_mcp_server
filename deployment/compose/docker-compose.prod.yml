@@ -1,0 +1,143 @@
+# ===========================================
+# 生产环境 Docker Compose 配置
+# Production Environment Docker Compose
+# ===========================================
+
+services:
+  xtool-mcp-prod:
+    image: xtool-mcp-server:latest
+    container_name: xtool_mcp_server_prod
+    hostname: xtool-mcp-server
+    
+    # Container labels for traceability
+    labels:
+      - "com.xtool-mcp.service=xtool_mcp_server"
+      - "com.xtool-mcp.version=1.0.0"
+      - "com.xtool-mcp.environment=production"
+      - "com.xtool-mcp.description=AI-powered Model Context Protocol server (Production)"
+      - "com.xtool-mcp.maintainer=xtool-team"
+    
+    # Production environment variables
+    environment:
+      # Model configuration
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-auto}
+      
+      # API Keys - 生产环境建议使用 Docker secrets
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      - DIAL_API_KEY=${DIAL_API_KEY}
+      - DIAL_API_HOST=${DIAL_API_HOST}
+      - DIAL_API_VERSION=${DIAL_API_VERSION}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - CUSTOM_API_URL=${CUSTOM_API_URL}
+      - CUSTOM_API_KEY=${CUSTOM_API_KEY}
+      - CUSTOM_MODEL_NAME=${CUSTOM_MODEL_NAME}
+      
+      # Production logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_MAX_SIZE=${LOG_MAX_SIZE:-20MB}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT:-10}
+      
+      # Production configuration
+      - DEFAULT_THINKING_MODE_THINKDEEP=${DEFAULT_THINKING_MODE_THINKDEEP:-medium}
+      - DISABLED_TOOLS=${DISABLED_TOOLS}
+      - MAX_MCP_OUTPUT_TOKENS=${MAX_MCP_OUTPUT_TOKENS:-100000}
+      
+      # Server configuration
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - TZ=${TZ:-UTC}
+      
+      # Production-specific settings
+      - PRODUCTION=true
+      - DEBUG=false
+    
+    # Production volumes - only persistent data
+    volumes:
+      - xtool-logs-prod:/app/logs
+      - xtool-mcp-config-prod:/app/conf
+      - xtool-memory-prod:/app/.xtool_memory
+      - /etc/localtime:/etc/localtime:ro
+    
+    # Network configuration
+    networks:
+      - xtool-network-prod
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      # Production deployment options
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    
+    # Strict health check for production
+    healthcheck:
+      test: ["CMD", "python", "/usr/local/bin/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Production restart policy
+    restart: unless-stopped
+    
+    # Production security settings
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /app/tmp:noexec,nosuid,size=50m
+    
+    # No exposed ports in production (use reverse proxy)
+    # ports:
+    #   - "8000:8000"  # 生产环境不直接暴露端口
+    
+    # Production logging driver
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+
+# Production-specific named volumes
+volumes:
+  xtool-logs-prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_LOGS_PATH:-./logs}
+  xtool-mcp-config-prod:
+    driver: local
+  xtool-memory-prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_MEMORY_PATH:-./data/memory}
+
+# Production networks
+networks:
+  xtool-network-prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"

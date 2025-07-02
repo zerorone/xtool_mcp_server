@@ -1,0 +1,237 @@
+{
+  "architecture_analysis": {
+    "title": "xtool MCP Server 三层记忆架构深度分析",
+    "timestamp": "2025-07-01",
+    "architecture_overview": {
+      "description": "三层记忆架构是 xtool MCP Server 的核心记忆管理系统，设计用于在不同时间范围和使用场景下智能存储、检索和优化信息。",
+      "layers": [
+        {
+          "name": "全局记忆层 (Global Memory Layer)",
+          "scope": "跨项目通用知识和模式",
+          "persistence": "长期持久化",
+          "purpose": "存储跨项目复用的通用知识、编程模式、最佳实践和解决方案模板"
+        },
+        {
+          "name": "项目记忆层 (Project Memory Layer)",
+          "scope": "特定项目的上下文和决策",
+          "persistence": "项目生命周期内持久化",
+          "purpose": "记录项目特定的架构决策、技术栈选择、约定和重要的代码变更历史"
+        },
+        {
+          "name": "会话记忆层 (Session Memory Layer)",
+          "scope": "临时对话状态和短期信息",
+          "persistence": "会话期间临时存储",
+          "purpose": "维护当前对话上下文、临时变量、任务状态和工作流程进度"
+        }
+      ]
+    },
+    "data_structures": {
+      "global_memory": {
+        "storage_format": "JSON + 向量索引",
+        "key_fields": [
+          "knowledge_type: 知识类型标识 (pattern, best_practice, solution_template)",
+          "content: 知识内容主体",
+          "tags: 标签数组用于分类和检索",
+          "usage_frequency: 使用频率统计",
+          "last_accessed: 最后访问时间",
+          "confidence_score: 知识可信度评分",
+          "source_projects: 来源项目列表",
+          "embedding_vector: 语义向量表示"
+        ],
+        "indexing_strategy": "分层索引：语义向量 + 标签索引 + 频率索引",
+        "optimization": "基于使用频率和时间衰减的LRU优化"
+      },
+      "project_memory": {
+        "storage_format": "项目特定的JSON文件 + 轻量级向量索引",
+        "key_fields": [
+          "project_id: 项目唯一标识",
+          "decision_type: 决策类型 (architecture, technology, convention)",
+          "context: 决策上下文和背景",
+          "rationale: 决策理由和考虑因素",
+          "alternatives: 被拒绝的替代方案",
+          "impact: 决策影响范围",
+          "timestamp: 决策时间",
+          "status: 决策状态 (active, deprecated, evolved)"
+        ],
+        "indexing_strategy": "项目范围内的语义索引 + 时间线索引",
+        "optimization": "基于项目活跃度和决策重要性的优先级管理"
+      },
+      "session_memory": {
+        "storage_format": "内存中的键值对 + 简单向量缓存",
+        "key_fields": [
+          "session_id: 会话唯一标识",
+          "conversation_thread: 对话线程ID",
+          "context_items: 上下文项目列表",
+          "active_tasks: 当前活跃任务",
+          "user_preferences: 用户偏好设置",
+          "temporary_data: 临时数据存储",
+          "workflow_state: 工作流状态"
+        ],
+        "indexing_strategy": "简单哈希索引 + 时间顺序索引",
+        "optimization": "基于会话活跃度的内存管理和垃圾回收"
+      }
+    },
+    "intelligent_indexing_algorithms": {
+      "semantic_embedding": {
+        "description": "使用预训练的文本嵌入模型生成知识的语义向量表示",
+        "implementation": "Sentence-BERT 或 OpenAI Embeddings API",
+        "purpose": "支持语义相似性搜索和知识关联发现",
+        "optimization": "缓存常用嵌入向量，批量处理减少API调用"
+      },
+      "hierarchical_clustering": {
+        "description": "基于语义相似性对知识进行层次化聚类",
+        "implementation": "HDBSCAN 或 层次聚类算法",
+        "purpose": "自动发现知识主题和类别，优化检索性能",
+        "optimization": "增量聚类更新，避免全量重计算"
+      },
+      "adaptive_weighting": {
+        "description": "根据使用模式动态调整不同检索因子的权重",
+        "factors": [
+          "语义相似度",
+          "使用频率",
+          "时间新鲜度",
+          "用户偏好"
+        ],
+        "implementation": "多目标优化算法或强化学习",
+        "purpose": "个性化检索结果，提高检索精度"
+      }
+    },
+    "retrieval_algorithms": {
+      "hybrid_search": {
+        "description": "结合语义搜索和关键词搜索的混合检索策略",
+        "components": [
+          "语义向量相似度搜索（余弦相似度）",
+          "BM25关键词匹配",
+          "标签精确匹配",
+          "时间衰减加权"
+        ],
+        "fusion_method": "线性组合或学习排序 (Learning to Rank)"
+      },
+      "contextual_filtering": {
+        "description": "基于当前上下文过滤和排序检索结果",
+        "context_sources": [
+          "当前项目技术栈",
+          "历史查询模式",
+          "用户角色和权限",
+          "任务类型和紧急程度"
+        ],
+        "filtering_rules": "可配置的规则引擎 + 机器学习模型"
+      },
+      "progressive_recall": {
+        "description": "从最相关层开始逐步扩展搜索范围",
+        "search_order": [
+          "1. 会话记忆层（最快速）",
+          "2. 项目记忆层（中等速度）",
+          "3. 全局记忆层（深度搜索）"
+        ],
+        "termination_criteria": "满足置信度阈值或最大结果数量"
+      }
+    },
+    "memory_decay_strategies": {
+      "temporal_decay": {
+        "description": "基于时间的记忆衰减机制",
+        "algorithms": [
+          "指数衰减：score = base_score * exp(-λ * time_diff)",
+          "阶梯衰减：不同时间段使用不同衰减率",
+          "周期性刷新：重要记忆定期重新评估"
+        ],
+        "parameters": "可配置的衰减系数和时间窗口"
+      },
+      "usage_based_decay": {
+        "description": "基于使用频率的记忆重要性评估",
+        "metrics": [
+          "访问频率统计",
+          "引用关系分析",
+          "用户反馈权重"
+        ],
+        "retention_policy": "高频使用项目延长保留时间，低频项目加速衰减"
+      },
+      "relevance_scoring": {
+        "description": "动态评估记忆项目的相关性和价值",
+        "scoring_factors": [
+          "内容质量评分",
+          "用户评价反馈",
+          "成功应用案例",
+          "技术栈匹配度"
+        ],
+        "threshold_management": "动态调整保留阈值，平衡存储成本和信息完整性"
+      }
+    },
+    "optimization_strategies": {
+      "storage_optimization": {
+        "compression": "使用zlib或lz4压缩存储大型记忆内容",
+        "deduplication": "检测和合并重复或相似的记忆项目",
+        "tiered_storage": "热数据内存缓存，温数据SSD，冷数据归档"
+      },
+      "performance_optimization": {
+        "caching": "多级缓存策略：L1内存缓存，L2磁盘缓存",
+        "batch_processing": "批量处理嵌入向量生成和索引更新",
+        "async_operations": "异步执行耗时的索引维护和优化任务"
+      },
+      "quality_optimization": {
+        "feedback_loop": "收集用户反馈优化检索算法",
+        "continuous_learning": "基于使用模式持续改进记忆管理策略",
+        "anomaly_detection": "检测和清理低质量或过时的记忆内容"
+      }
+    },
+    "layer_coordination_mechanisms": {
+      "information_flow": {
+        "upward_flow": "会话记忆 → 项目记忆 → 全局记忆（知识积累）",
+        "downward_flow": "全局记忆 → 项目记忆 → 会话记忆（知识应用）",
+        "promotion_criteria": [
+          "使用频率超过阈值",
+          "用户明确标记为重要",
+          "成功解决问题的方案",
+          "跨项目复用价值"
+        ]
+      },
+      "conflict_resolution": {
+        "priority_rules": "项目记忆 > 全局记忆 > 会话记忆（针对冲突信息）",
+        "version_control": "维护记忆项目的版本历史和变更记录",
+        "consensus_mechanism": "通过多次验证建立记忆项目的可信度"
+      },
+      "synchronization": {
+        "consistency_maintenance": "确保跨层信息的一致性和完整性",
+        "transaction_support": "支持跨层记忆操作的事务性保证",
+        "conflict_detection": "自动检测和报告层间信息冲突"
+      }
+    },
+    "implementation_considerations": {
+      "scalability": {
+        "horizontal_scaling": "支持分布式存储和检索",
+        "vertical_scaling": "优化单机性能和内存使用",
+        "cloud_integration": "支持云存储服务和向量数据库"
+      },
+      "reliability": {
+        "backup_strategy": "定期备份和灾难恢复",
+        "data_integrity": "校验和验证确保数据完整性",
+        "error_handling": "优雅处理存储和检索错误"
+      },
+      "security": {
+        "access_control": "基于用户权限的记忆访问控制",
+        "data_encryption": "敏感记忆内容的加密存储",
+        "privacy_protection": "用户数据隐私保护措施"
+      }
+    }
+  },
+  "recommendations": {
+    "immediate_priorities": [
+      "1. 实现基础的三层存储结构和API接口",
+      "2. 集成语义嵌入功能支持智能检索",
+      "3. 建立基本的记忆衰减和优化机制",
+      "4. 实现层间信息流转和冲突解决机制"
+    ],
+    "future_enhancements": [
+      "1. 引入机器学习模型优化检索精度",
+      "2. 实现分布式架构支持大规模部署",
+      "3. 添加可视化界面支持记忆管理和监控",
+      "4. 集成外部知识库和API数据源"
+    ],
+    "risk_mitigation": [
+      "1. 定期监控存储成本和性能指标",
+      "2. 建立记忆质量评估和清理机制",
+      "3. 实施用户隐私保护和数据安全措施",
+      "4. 设计降级方案应对系统故障"
+    ]
+  }
+}

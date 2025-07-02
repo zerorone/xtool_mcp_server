@@ -1,6 +1,6 @@
 # 🔄 Migration Guide: v5.x to v6.0
 
-This guide helps you migrate from Zen MCP Server v5.x to v6.0.
+This guide helps you migrate from xtool MCP Server v5.x to v6.0.
 
 ## Overview
 
@@ -47,7 +47,7 @@ git pull origin main
 ```env
 # Enhanced Memory System
 ENABLE_ENHANCED_MEMORY=true  # Default: true
-MEMORY_STORAGE_PATH=.zen_memory  # Default: .zen_memory
+MEMORY_STORAGE_PATH=.XTOOL_memory  # Default: .XTOOL_memory
 AUTO_DETECT_ENV=true  # Default: true
 AUTO_SAVE_MEMORY=true  # Default: true
 
@@ -200,6 +200,6 @@ None - all v5.x features are maintained.
 
 ## Summary
 
-Version 6.0 brings powerful enhancements while maintaining the simplicity and reliability you expect from Zen MCP Server. The migration is straightforward with minimal breaking changes, and the new features significantly enhance your AI-assisted development experience.
+Version 6.0 brings powerful enhancements while maintaining the simplicity and reliability you expect from xtool MCP Server. The migration is straightforward with minimal breaking changes, and the new features significantly enhance your AI-assisted development experience.
 
-Welcome to Zen MCP Server v6.0! 🚀
+Welcome to xtool MCP Server v6.0! 🚀

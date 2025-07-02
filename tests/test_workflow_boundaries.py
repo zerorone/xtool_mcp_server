@@ -2,7 +2,7 @@
 边界情况测试用例 - 验证工作流系统的极限和错误处理
 
 这个测试文件通过 challenge 工具的对抗性测试方法，
-系统地验证 Zen MCP Server 工作流系统的边界条件处理。
+系统地验证 xtool MCP Server 工作流系统的边界条件处理。
 """
 
 import asyncio
@@ -57,7 +57,7 @@ class TestWorkflowBoundaries:
             assert result is not None
 
             # 检查是否有步骤数限制的提示
-            response = json.loads(result[0].text)
+            json.loads(result[0].text)
             # 系统应该继续工作，但可能调整 total_steps
 
     @pytest.mark.asyncio
@@ -286,7 +286,7 @@ class TestWorkflowBoundaries:
 
                     # 检查 certain 是否跳过专家分析
                     if confidence and confidence.lower() == "certain":
-                        assert response.get("skip_expert_analysis") == True
+                        assert response.get("skip_expert_analysis")
                 except Exception as e:
                     # 无效值应该有合理的错误处理
                     assert "confidence" in str(e).lower()

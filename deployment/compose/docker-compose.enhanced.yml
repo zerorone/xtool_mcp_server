@@ -1,0 +1,226 @@
+# xtool MCP Server - 增强版 Docker Compose
+# 支持文件处理优化、持久化存储、监控和跨项目部署
+
+services:
+  xtool_mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: xtool_mcp_server:enhanced
+    container_name: zen-mcp-enhanced
+    
+    # 增强标签
+    labels:
+      - "com.zen-mcp.service=xtool_mcp_server"
+      - "com.zen-mcp.version=enhanced-2.0"
+      - "com.zen-mcp.environment=production"
+      - "com.zen-mcp.features=optimized-file-processing,persistent-storage,monitoring"
+      - "com.zen-mcp.description=AI-powered MCP server with enhanced file processing and monitoring"
+    
+    # 环境变量配置
+    environment:
+      # 基本配置
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-auto}
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - TZ=${TZ:-UTC}
+      
+      # API 密钥
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      - DIAL_API_KEY=${DIAL_API_KEY}
+      - DIAL_API_HOST=${DIAL_API_HOST}
+      - DIAL_API_VERSION=${DIAL_API_VERSION}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - CUSTOM_API_URL=${CUSTOM_API_URL}
+      - CUSTOM_API_KEY=${CUSTOM_API_KEY}
+      - CUSTOM_MODEL_NAME=${CUSTOM_MODEL_NAME}
+      
+      # 日志配置
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_MAX_SIZE=${LOG_MAX_SIZE:-20MB}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT:-5}
+      
+      # 高级配置
+      - DEFAULT_THINKING_MODE_THINKDEEP=${DEFAULT_THINKING_MODE_THINKDEEP:-high}
+      - DISABLED_TOOLS=${DISABLED_TOOLS}
+      - MAX_MCP_OUTPUT_TOKENS=${MAX_MCP_OUTPUT_TOKENS}
+      
+      # 文件处理优化配置
+      - XTOOL_FILE_CACHE_MEMORY_MB=${XTOOL_FILE_CACHE_MEMORY_MB:-100}
+      - XTOOL_FILE_CACHE_DISK_MB=${XTOOL_FILE_CACHE_DISK_MB:-500}
+      - XTOOL_FILE_OPTIMIZATION_ENABLED=${XTOOL_FILE_OPTIMIZATION_ENABLED:-true}
+      - XTOOL_PARALLEL_FILE_READS=${XTOOL_PARALLEL_FILE_READS:-10}
+      
+      # 工作流配置
+      - XTOOL_WORKFLOW_MAX_STEPS=${XTOOL_WORKFLOW_MAX_STEPS:-50}
+      - XTOOL_WORKFLOW_PERSISTENCE_ENABLED=${XTOOL_WORKFLOW_PERSISTENCE_ENABLED:-true}
+      - XTOOL_WORKFLOW_CLEANUP_INTERVAL=${XTOOL_WORKFLOW_CLEANUP_INTERVAL:-300}
+      
+      # 监控配置
+      - XTOOL_MONITORING_ENABLED=${XTOOL_MONITORING_ENABLED:-true}
+      - XTOOL_HEALTH_CHECK_INTERVAL=${XTOOL_HEALTH_CHECK_INTERVAL:-30}
+    
+    # 持久化存储卷
+    volumes:
+      # 日志持久化
+      - zen-logs:/app/logs
+      # 内存数据持久化
+      - zen-memory:/app/.XTOOL_memory
+      # 配置持久化
+      - zen-config:/app/conf
+      # 工作流状态持久化
+      - zen-workflows:/app/.XTOOL_memory/workflow_states
+      # 文件缓存持久化
+      - zen-file-cache:/app/.XTOOL_memory/file_cache
+      # 本地时间
+      - /etc/localtime:/etc/localtime:ro
+      # 可选：项目文件挂载（用于跨项目访问）
+      - ${XTOOL_PROJECT_PATH:-./projects}:/app/workspace:ro
+    
+    # 网络配置
+    networks:
+      - zen-enhanced-network
+    
+    # 端口暴露（可选的 HTTP 监控接口）
+    ports:
+      - "${XTOOL_HTTP_PORT:-8080}:8000"
+    
+    # 资源限制（增强版需要更多资源）
+    deploy:
+      resources:
+        limits:
+          memory: ${XTOOL_MEMORY_LIMIT:-1G}
+          cpus: ${XTOOL_CPU_LIMIT:-1.0}
+        reservations:
+          memory: ${XTOOL_MEMORY_RESERVE:-512M}
+          cpus: ${XTOOL_CPU_RESERVE:-0.5}
+    
+    # 增强健康检查
+    healthcheck:
+      test: ["CMD", "python", "/usr/local/bin/healthcheck.py", "--enhanced"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    
+    # 重启策略
+    restart: unless-stopped
+    
+    # 安全配置
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=200m
+      - /app/tmp:noexec,nosuid,size=100m
+    
+    # 依赖服务（可选）
+    depends_on:
+      zen-monitoring:
+        condition: service_healthy
+      zen-redis:
+        condition: service_healthy
+
+  # 可选：Redis 用于高性能缓存
+  zen-redis:
+    image: redis:7-alpine
+    container_name: zen-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - zen-redis-data:/data
+    networks:
+      - zen-enhanced-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: 0.25
+
+  # 可选：监控服务
+  zen-monitoring:
+    image: prom/prometheus:latest
+    container_name: zen-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - zen-prometheus-data:/prometheus
+    networks:
+      - zen-enhanced-network
+    ports:
+      - "${XTOOL_PROMETHEUS_PORT:-9090}:9090"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+# 命名卷
+volumes:
+  zen-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_LOGS_PATH:-./docker-data/logs}
+  
+  zen-memory:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_MEMORY_PATH:-./docker-data/memory}
+  
+  zen-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_CONFIG_PATH:-./docker-data/config}
+  
+  zen-workflows:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_WORKFLOWS_PATH:-./docker-data/workflows}
+  
+  zen-file-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${XTOOL_FILE_CACHE_PATH:-./docker-data/file-cache}
+  
+  zen-redis-data:
+    driver: local
+  
+  zen-prometheus-data:
+    driver: local
+
+# 网络
+networks:
+  zen-enhanced-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: zen-enhanced-br
