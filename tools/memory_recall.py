@@ -34,7 +34,9 @@ class MemoryRecallTool(SimpleTool):
     def get_request_model_name(self, request) -> Optional[str]:
         """Override model selection to always use Gemini 2.5 Flash for memory operations"""
         # 强制记忆模块只使用 Gemini 2.5 Flash 模型
-        return "gemini-2.5-flash"
+        # 使用环境变量或默认为 google/gemini-2.5-flash (OpenRouter格式)
+        import os
+        return os.getenv("MEMORY_TOOL_MODEL", "google/gemini-2.5-flash")
 
     def get_description(self) -> str:
         return (
@@ -137,20 +139,35 @@ class MemoryRecallTool(SimpleTool):
             specified_files = getattr(request, "specified_files", None)
             show_stats = getattr(request, "show_stats", False)
 
+            # 解析参数
+            tag_list = [t.strip() for t in tags.split(",")] if tags else None
+            file_list = [f.strip() for f in specified_files.split(",")] if specified_files else None
+            
+            # 时间范围
+            time_range = None
+            if days_back:
+                from datetime import datetime, timedelta, timezone
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=days_back)
+                time_range = (start_date, end_date)
+            
             # 执行token感知的记忆回忆
-            result = await token_aware_memory_recall(
+            result = token_aware_memory_recall(
                 query=query,
-                tags=tags,
+                tags=tag_list,
                 mem_type=mem_type,
                 layer=layer,
-                days_back=days_back,
+                time_range=time_range,
                 min_quality=min_quality,
                 match_mode=match_mode,
                 token_limit=token_limit,
-                specified_files=specified_files,
-                show_stats=show_stats,
+                include_metadata=True,
+                specified_files=file_list,
             )
 
+            # 构建回忆报告
+            report = self._build_recall_report(result, show_stats)
+            
             return f"""基于以下参数执行记忆回忆：
 
 **回忆参数：**
@@ -165,7 +182,7 @@ class MemoryRecallTool(SimpleTool):
 - 指定文件: {specified_files or "无"}
 
 **回忆结果：**
-{result}
+{report}
 
 请分析这些记忆信息，提供清晰的总结和关键洞察。"""
 

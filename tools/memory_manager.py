@@ -92,7 +92,9 @@ class MemoryManagerTool(SimpleTool):
     def get_request_model_name(self, request) -> Optional[str]:
         """Override model selection to always use Gemini 2.5 Flash for memory operations"""
         # 强制记忆模块只使用 Gemini 2.5 Flash 模型
-        return "gemini-2.5-flash"
+        # 使用环境变量或默认为 google/gemini-2.5-flash (OpenRouter格式)
+        import os
+        return os.getenv("MEMORY_TOOL_MODEL", "google/gemini-2.5-flash")
 
     def requires_ai_model(self, request: MemoryManagerRequest) -> bool:
         """
@@ -102,10 +104,10 @@ class MemoryManagerTool(SimpleTool):
         Recall and analyze operations might benefit from AI assistance.
         """
         # Direct operations that don't need AI
-        if request.action in ["save", "detect_env", "rebuild_index", "cleanup", "export", "import"]:
+        if request.action in ["save", "detect_env", "rebuild_index", "cleanup", "export", "import", "recall"]:
             return False
 
-        # Recall and analyze might use AI for better results
+        # Only analyze operations use AI for better results
         return True
 
     def get_description(self) -> str:
